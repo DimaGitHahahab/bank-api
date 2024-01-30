@@ -35,14 +35,12 @@ func NewUserService(repo repository.UserRepository) UserService {
 	return &userService{repo: repo}
 }
 func (s *userService) CreateUser(ctx context.Context, new *model.UserInfo) (*model.User, error) {
-
+	if _, err := mail.ParseAddress(new.Email); err != nil {
+		return nil, ErrInvalidEmail
+	}
 	_, err := s.repo.GetUserIdByEmail(ctx, new.Email)
 	if err == nil {
 		return nil, ErrUserAlreadyExists
-	}
-
-	if _, err = mail.ParseAddress(new.Email); err != nil {
-		return nil, ErrInvalidEmail
 	}
 	user, err := s.repo.CreateUser(ctx, new)
 	if err != nil {
