@@ -35,7 +35,8 @@ func NewAccount(bank *bank.AccountService) gin.HandlerFunc {
 		cur := model.Currency(req.CurrencyName)
 		account, err := (*bank).CreateAccount(c, id, cur)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			code, message := handleError(err)
+			c.JSON(code, gin.H{"message": message})
 			return
 		}
 
@@ -70,8 +71,9 @@ func GetAccount(bank *bank.AccountService) gin.HandlerFunc {
 
 		account, err := (*bank).GetAccount(c, id, req.AccountId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-			return
+			code, message := handleError(err)
+			c.JSON(code, gin.H{"message": message})
+
 		}
 
 		resp := accountInfoResponse{
@@ -104,7 +106,8 @@ func DeleteAccount(bank *bank.AccountService) gin.HandlerFunc {
 		}
 		err := (*bank).DeleteAccount(c, id, req.AccountId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			code, message := handleError(err)
+			c.JSON(code, gin.H{"message": message})
 			return
 		}
 

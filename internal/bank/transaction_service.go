@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	ErrorNotEnoughMoney = errors.New("not enough money")
-	ErrInvalidAmount    = errors.New("invalid amount")
+	ErrNotEnoughMoney = errors.New("not enough money")
+	ErrInvalidAmount  = errors.New("invalid amount")
 )
 
 type TransactionService interface {
@@ -28,7 +28,7 @@ func NewTransactionService(repo repository.AccountRepository) TransactionService
 func (s *transactionService) ProcessTransaction(ctx context.Context, transaction *model.Transaction) error {
 	acc, err := s.repo.GetAccount(ctx, transaction.AccountId)
 	if err != nil {
-		return err
+		return ErrInvalidAccount
 	}
 
 	if acc.UserId != transaction.UserId {
@@ -41,15 +41,15 @@ func (s *transactionService) ProcessTransaction(ctx context.Context, transaction
 
 	if transaction.Type == model.Withdraw {
 		if acc.Amount < transaction.Amount {
-			return ErrorNotEnoughMoney
+			return ErrNotEnoughMoney
 		}
 
 		if err = s.repo.Transaction(ctx, transaction.AccountId, acc.Amount-transaction.Amount); err != nil {
-			return err
+			return ErrInternal
 		}
 	} else if transaction.Type == model.Deposit {
 		if err = s.repo.Transaction(ctx, transaction.AccountId, acc.Amount+transaction.Amount); err != nil {
-			return err
+			return ErrInternal
 		}
 	}
 
@@ -59,7 +59,7 @@ func (s *transactionService) ProcessTransaction(ctx context.Context, transaction
 func (s *transactionService) ProcessTransfer(ctx context.Context, transfer *model.Transfer) error {
 	accFrom, err := s.repo.GetAccount(ctx, transfer.AccountId)
 	if err != nil {
-		return err
+		return ErrInvalidAccount
 	}
 	if accFrom.UserId != transfer.UserId {
 		return ErrInvalidAccount
@@ -79,7 +79,7 @@ func (s *transactionService) ProcessTransfer(ctx context.Context, transfer *mode
 	}
 
 	if accFrom.Amount < transfer.Amount {
-		return ErrorNotEnoughMoney
+		return ErrNotEnoughMoney
 	}
 
 	if err = s.repo.Transfer(ctx, transfer.AccountId, transfer.ToAccountId, transfer.Amount); err != nil {

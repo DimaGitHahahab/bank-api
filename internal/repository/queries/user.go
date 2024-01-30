@@ -11,6 +11,7 @@ import (
 var (
 	ErrUserAlreadyExists = errors.New("user already exists")
 	ErrNoSuchUser        = errors.New("no such user")
+	ErrInternal          = errors.New("internal error")
 )
 
 const createUser = `
@@ -27,6 +28,7 @@ func (q *Queries) CreateUser(ctx context.Context, newUserInfo *model.UserInfo) (
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
 			return nil, ErrUserAlreadyExists
 		}
+		return nil, ErrInternal
 	}
 	return &user, nil
 }

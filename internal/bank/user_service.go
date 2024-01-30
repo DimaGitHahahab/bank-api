@@ -9,10 +9,14 @@ import (
 )
 
 var (
-	ErrEmptyUserInfo     = errors.New("empty account info")
+	ErrEmptyUserInfo     = errors.New("empty user info")
 	ErrUserAlreadyExists = errors.New("user already exists")
-	ErrSameAccountInfo   = errors.New("same account info")
+	ErrSameUserInfo      = errors.New("same user info")
 	ErrInvalidEmail      = errors.New("invalid email")
+
+	ErrInternal = errors.New("internal error")
+
+	ErrNoSuchUser = errors.New("no such user")
 )
 
 type UserService interface {
@@ -37,12 +41,12 @@ func (s *userService) CreateUser(ctx context.Context, new *model.UserInfo) (*mod
 		return nil, ErrUserAlreadyExists
 	}
 
-	if _, err := mail.ParseAddress(new.Email); err != nil {
+	if _, err = mail.ParseAddress(new.Email); err != nil {
 		return nil, ErrInvalidEmail
 	}
 	user, err := s.repo.CreateUser(ctx, new)
 	if err != nil {
-
+		return nil, ErrInternal
 	}
 
 	return user, nil
@@ -81,11 +85,11 @@ func (s *userService) UpdateUserInfo(ctx context.Context, id int, newInfo *model
 
 	oldInfo, err := s.repo.GetUser(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, ErrNoSuchUser
 	}
 
 	if newInfo.Name == oldInfo.Name && newInfo.Email == oldInfo.Email {
-		return nil, ErrSameAccountInfo
+		return nil, ErrSameUserInfo
 	}
 
 	var info model.UserInfo
@@ -93,12 +97,15 @@ func (s *userService) UpdateUserInfo(ctx context.Context, id int, newInfo *model
 		info.Name = newInfo.Name
 	}
 	if newInfo.Email != "" {
+		if _, err = mail.ParseAddress(newInfo.Email); err != nil {
+			return nil, ErrInvalidEmail
+		}
 		info.Email = newInfo.Email
 	}
 
 	user, err := s.repo.UpdateUser(ctx, id, &info)
 	if err != nil {
-		return nil, err
+		return nil, ErrInternal
 	}
 
 	return user, nil
@@ -107,12 +114,12 @@ func (s *userService) UpdateUserInfo(ctx context.Context, id int, newInfo *model
 func (s *userService) DeleteUserById(ctx context.Context, id int) error {
 	_, err := s.repo.GetUser(ctx, id)
 	if err != nil {
-		return err
+		return ErrNoSuchUser
 	}
 
 	err = s.repo.DeleteUser(ctx, id)
 	if err != nil {
-		return err
+		return ErrInternal
 	}
 
 	return nil

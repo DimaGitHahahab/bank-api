@@ -16,7 +16,7 @@ func Deposit(bank *bank.TransactionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request (no id in context)"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
 			return
 		}
 		id := int(userId.(float64))
@@ -33,7 +33,8 @@ func Deposit(bank *bank.TransactionService) gin.HandlerFunc {
 			Type:      model.Deposit,
 		})
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			code, message := handleError(err)
+			c.JSON(code, gin.H{"message": message})
 			return
 		}
 
@@ -50,7 +51,7 @@ func Withdraw(bank *bank.TransactionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request (no id in context)"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
 			return
 		}
 		id := int(userId.(float64))
@@ -67,7 +68,8 @@ func Withdraw(bank *bank.TransactionService) gin.HandlerFunc {
 			Type:      model.Withdraw,
 		})
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			code, message := handleError(err)
+			c.JSON(code, gin.H{"message": message})
 			return
 		}
 
@@ -103,7 +105,8 @@ func Transfer(bank *bank.TransactionService) gin.HandlerFunc {
 			Amount:      req.Amount,
 		})
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			code, message := handleError(err)
+			c.JSON(code, gin.H{"message": message})
 			return
 		}
 

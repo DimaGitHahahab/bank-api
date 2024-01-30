@@ -10,6 +10,8 @@ import (
 var (
 	ErrInvalidAccount = errors.New("invalid account")
 	ErrNoSuchCurrency = errors.New("no such currency")
+
+	ErrNoSuchAccount = errors.New("no such account")
 )
 
 type AccountService interface {
@@ -34,7 +36,7 @@ func (s *accountService) CreateAccount(ctx context.Context, userId int, cur mode
 	}
 	account, err := s.repo.CreateAccount(ctx, userId, cur)
 	if err != nil {
-		return nil, err
+		return nil, ErrInternal
 	}
 
 	return account, nil
@@ -43,7 +45,7 @@ func (s *accountService) CreateAccount(ctx context.Context, userId int, cur mode
 func (s *accountService) GetAccount(ctx context.Context, userId int, accountId int) (*model.Account, error) {
 	account, err := s.repo.GetAccount(ctx, accountId)
 	if err != nil {
-		return nil, err
+		return nil, ErrNoSuchAccount
 	}
 	if account.UserId != userId {
 		return nil, ErrInvalidAccount
@@ -54,14 +56,14 @@ func (s *accountService) GetAccount(ctx context.Context, userId int, accountId i
 func (s *accountService) UpdateAccount(ctx context.Context, userId int, accountId int, amount int) (*model.Account, error) {
 	account, err := s.repo.GetAccount(ctx, accountId)
 	if err != nil {
-		return nil, err
+		return nil, ErrNoSuchAccount
 	}
 	if account.UserId != userId {
 		return nil, ErrInvalidAccount
 	}
 	account, err = s.repo.UpdateAccount(ctx, accountId, amount)
 	if err != nil {
-		return nil, err
+		return nil, ErrInternal
 	}
 
 	return account, nil
@@ -70,7 +72,7 @@ func (s *accountService) UpdateAccount(ctx context.Context, userId int, accountI
 func (s *accountService) DeleteAccount(ctx context.Context, userId int, accountId int) error {
 	acc, err := s.repo.GetAccount(ctx, accountId)
 	if err != nil {
-		return err
+		return ErrNoSuchAccount
 	}
 	if acc.UserId != userId {
 		return ErrInvalidAccount
@@ -78,7 +80,7 @@ func (s *accountService) DeleteAccount(ctx context.Context, userId int, accountI
 
 	err = s.repo.DeleteAccount(ctx, accountId)
 	if err != nil {
-		return err
+		return ErrInternal
 	}
 
 	return nil

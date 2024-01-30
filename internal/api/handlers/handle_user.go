@@ -12,13 +12,14 @@ func GetUser(bank *bank.UserService) gin.HandlerFunc {
 
 		userId, ok := c.Get("user_id")
 		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request (no id in context)"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
 			return
 		}
 		id := int(userId.(float64))
 		user, err := (*bank).GetUserById(c, id)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			code, message := handleError(err)
+			c.JSON(code, gin.H{"message": message})
 			return
 		}
 
@@ -40,13 +41,13 @@ func UpdateUser(bank *bank.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request (no id in context)"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
 			return
 		}
 		id := int(userId.(float64))
 		var req updateUserRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request body"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
 			return
 		}
 
@@ -55,7 +56,8 @@ func UpdateUser(bank *bank.UserService) gin.HandlerFunc {
 			Email: req.Email,
 		})
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			code, message := handleError(err)
+			c.JSON(code, gin.H{"message": message})
 			return
 		}
 
@@ -72,13 +74,14 @@ func DeleteUser(bank *bank.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request (no id in context)"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
 			return
 		}
 		id := int(userId.(float64))
 
 		if err := (*bank).DeleteUserById(c, id); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			code, message := handleError(err)
+			c.JSON(code, gin.H{"message": message})
 			return
 		}
 
