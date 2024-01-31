@@ -15,17 +15,23 @@ func TestCreateAccount(t *testing.T) {
 
 	mockRepo := mocks.NewMockAccountRepository(ctrl)
 
-	mockRepo.EXPECT().GetCurrencyId(gomock.Any(), model.Currency("RUB")).Return(1, nil)
-	mockRepo.EXPECT().CreateAccount(gomock.Any(), 1, model.Currency("RUB")).Return(&model.Account{Id: 1, UserId: 1, Cur: "RUB", Amount: 0}, nil)
+	mockRepo.EXPECT().GetCurrencyId(gomock.Any(), model.Currency{Symbol: "RUB"}).Return(1, nil)
+	mockRepo.EXPECT().CreateAccount(gomock.Any(), 1, model.Currency{
+		Id:     1,
+		Symbol: "RUB",
+	}).Return(&model.Account{Id: 1, UserId: 1, Cur: model.Currency{
+		Id:     1,
+		Symbol: "RUB",
+	}, Amount: 0}, nil)
 
 	s := NewAccountService(mockRepo)
 
-	account, err := s.CreateAccount(context.Background(), 1, model.Currency("RUB"))
+	account, err := s.CreateAccount(context.Background(), 1, model.Currency{Symbol: "RUB"})
 	assert.NoError(t, err)
 	assert.NotNil(t, account)
 	assert.Equal(t, 1, account.Id)
 	assert.Equal(t, 1, account.UserId)
-	assert.Equal(t, model.Currency("RUB"), account.Cur)
+	assert.Equal(t, model.Currency{Id: 1, Symbol: "RUB"}, account.Cur)
 	assert.Equal(t, 0, account.Amount)
 }
 
@@ -35,11 +41,11 @@ func TestCreateAccount_NoSuchCurrency(t *testing.T) {
 
 	mockRepo := mocks.NewMockAccountRepository(ctrl)
 
-	mockRepo.EXPECT().GetCurrencyId(gomock.Any(), model.Currency("currencyName")).Return(0, ErrNoSuchCurrency)
+	mockRepo.EXPECT().GetCurrencyId(gomock.Any(), model.Currency{Symbol: "currencyName"}).Return(0, ErrNoSuchCurrency)
 
 	s := NewAccountService(mockRepo)
 
-	account, err := s.CreateAccount(context.Background(), 1, model.Currency("currencyName"))
+	account, err := s.CreateAccount(context.Background(), 1, model.Currency{Symbol: "currencyName"})
 	assert.Error(t, err)
 	assert.Nil(t, account)
 }
@@ -50,7 +56,10 @@ func TestGetAccount(t *testing.T) {
 
 	mockRepo := mocks.NewMockAccountRepository(ctrl)
 
-	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 1, Cur: "RUB", Amount: 0}, nil)
+	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 1, Cur: model.Currency{
+		Id:     1,
+		Symbol: "RUB",
+	}, Amount: 0}, nil)
 
 	s := NewAccountService(mockRepo)
 
@@ -59,7 +68,10 @@ func TestGetAccount(t *testing.T) {
 	assert.NotNil(t, account)
 	assert.Equal(t, 1, account.Id)
 	assert.Equal(t, 1, account.UserId)
-	assert.Equal(t, model.Currency("RUB"), account.Cur)
+	assert.Equal(t, model.Currency{
+		Id:     1,
+		Symbol: "RUB",
+	}, account.Cur)
 	assert.Equal(t, 0, account.Amount)
 }
 
@@ -69,7 +81,10 @@ func TestGetAccount_WrongUser(t *testing.T) {
 
 	mockRepo := mocks.NewMockAccountRepository(ctrl)
 
-	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 2, Cur: "RUB", Amount: 0}, nil)
+	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 2, Cur: model.Currency{
+		Id:     1,
+		Symbol: "RUB",
+	}, Amount: 0}, nil)
 
 	s := NewAccountService(mockRepo)
 
@@ -84,8 +99,14 @@ func TestUpdateAccount(t *testing.T) {
 
 	mockRepo := mocks.NewMockAccountRepository(ctrl)
 
-	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 1, Cur: "RUB", Amount: 0}, nil)
-	mockRepo.EXPECT().UpdateAccount(gomock.Any(), 1, 100).Return(&model.Account{Id: 1, UserId: 1, Cur: "RUB", Amount: 100}, nil)
+	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 1, Cur: model.Currency{
+		Id:     1,
+		Symbol: "RUB",
+	}, Amount: 0}, nil)
+	mockRepo.EXPECT().UpdateAccount(gomock.Any(), 1, 100).Return(&model.Account{Id: 1, UserId: 1, Cur: model.Currency{
+		Id:     1,
+		Symbol: "RUB",
+	}, Amount: 100}, nil)
 
 	s := NewAccountService(mockRepo)
 
@@ -94,7 +115,10 @@ func TestUpdateAccount(t *testing.T) {
 	assert.NotNil(t, account)
 	assert.Equal(t, 1, account.Id)
 	assert.Equal(t, 1, account.UserId)
-	assert.Equal(t, model.Currency("RUB"), account.Cur)
+	assert.Equal(t, model.Currency{
+		Id:     1,
+		Symbol: "RUB",
+	}, account.Cur)
 	assert.Equal(t, 100, account.Amount)
 }
 
@@ -103,8 +127,10 @@ func TestUpdateAccount_WrongUser(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockAccountRepository(ctrl)
-
-	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 2, Cur: "RUB", Amount: 0}, nil)
+	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 2, Cur: model.Currency{
+		Id:     1,
+		Symbol: "RUB",
+	}, Amount: 0}, nil)
 
 	s := NewAccountService(mockRepo)
 
@@ -119,7 +145,12 @@ func TestDeleteAccount(t *testing.T) {
 
 	mockRepo := mocks.NewMockAccountRepository(ctrl)
 
-	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 1, Cur: "RUB", Amount: 0}, nil)
+	//mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 1, Cur: "RUB", Amount: 0}, nil)
+	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 1, Cur: model.Currency{
+		Id:     1,
+		Symbol: "RUB",
+	}, Amount: 0}, nil)
+
 	mockRepo.EXPECT().DeleteAccount(gomock.Any(), 1).Return(nil)
 
 	s := NewAccountService(mockRepo)
@@ -134,7 +165,10 @@ func TestDeleteAccount_WrongUser(t *testing.T) {
 
 	mockRepo := mocks.NewMockAccountRepository(ctrl)
 
-	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 2, Cur: "RUB", Amount: 0}, nil)
+	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 2, Cur: model.Currency{
+		Id:     1,
+		Symbol: "RUB",
+	}, Amount: 0}, nil)
 
 	s := NewAccountService(mockRepo)
 

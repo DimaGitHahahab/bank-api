@@ -17,11 +17,25 @@ WHERE symbol = $1
 
 func (q *Queries) GetCurrencyId(ctx context.Context, cur model.Currency) (int, error) {
 	var id int
-	err := q.pool.QueryRow(ctx, currencyIdBySymbol, cur).Scan(&id)
+	err := q.pool.QueryRow(ctx, currencyIdBySymbol, cur.Symbol).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
 	return id, nil
+}
+
+const currencySymbolById = `
+SELECT symbol FROM currency
+WHERE id = $1
+`
+
+func (q *Queries) GetCurrencySymbol(ctx context.Context, id int) (string, error) {
+	var symbol string
+	err := q.pool.QueryRow(ctx, currencySymbolById, id).Scan(&symbol)
+	if err != nil {
+		return "", err
+	}
+	return symbol, nil
 }
 
 const createAccount = `
@@ -32,7 +46,7 @@ RETURNING id, user_id, amount
 
 func (q *Queries) CreateAccount(ctx context.Context, userId int, cur model.Currency) (*model.Account, error) {
 	var account model.Account
-	_ = q.pool.QueryRow(ctx, createAccount, userId, cur).Scan(&account.Id, &account.UserId, &account.Amount)
+	_ = q.pool.QueryRow(ctx, createAccount, userId, cur.Symbol).Scan(&account.Id, &account.UserId, &account.Amount)
 	account.Cur = cur
 	return &account, nil
 }
@@ -46,10 +60,11 @@ WHERE account.id = $1
 
 func (q *Queries) GetAccount(ctx context.Context, accountId int) (*model.Account, error) {
 	var account model.Account
-	err := q.pool.QueryRow(ctx, getAccount, accountId).Scan(&account.Id, &account.UserId, &account.Cur, &account.Amount)
+	err := q.pool.QueryRow(ctx, getAccount, accountId).Scan(&account.Id, &account.UserId, &account.Cur.Symbol, &account.Amount)
 	if err != nil {
 		return nil, ErrNoSuchAccount
 	}
+	account.Cur.Id, _ = q.GetCurrencyId(ctx, account.Cur)
 	return &account, nil
 }
 
@@ -62,10 +77,11 @@ RETURNING id, user_id, currency_id, amount
 
 func (q *Queries) UpdateAccount(ctx context.Context, accountId int, amount int) (*model.Account, error) {
 	var account model.Account
-	err := q.pool.QueryRow(ctx, updateAccount, accountId, amount).Scan(&account.Id, &account.UserId, &account.Cur, &account.Amount)
+	err := q.pool.QueryRow(ctx, updateAccount, accountId, amount).Scan(&account.Id, &account.UserId, &account.Cur.Id, &account.Amount)
 	if err != nil {
 		return nil, ErrNoSuchAccount
 	}
+	account.Cur.Symbol, _ = q.GetCurrencySymbol(ctx, account.Cur.Id)
 	return &account, nil
 }
 

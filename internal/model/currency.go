@@ -1,3 +1,6 @@
 package model
 
-type Currency string
+type Currency struct {
+	Id     int
+	Symbol string
+}

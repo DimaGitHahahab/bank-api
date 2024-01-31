@@ -20,6 +20,8 @@ func handleError(err error) (int, string) {
 		return http.StatusConflict, "User already exists"
 	case errors.Is(err, bank.ErrInvalidAmount):
 		return http.StatusBadRequest, "Invalid amount"
+	case errors.Is(err, bank.ErrNoTransactions):
+		return http.StatusNotFound, "No transactions"
 	default:
 		return http.StatusInternalServerError, "Internal server error"
 	}

@@ -23,8 +23,10 @@ type AccountRepository interface {
 	UpdateAccount(ctx context.Context, id int, amount int) (*model.Account, error)
 	DeleteAccount(ctx context.Context, id int) error
 
-	Transaction(ctx context.Context, accountId int, amount int) error
+	Transaction(ctx context.Context, accountId int, amount int, t model.TransactionType) error
 	Transfer(ctx context.Context, fromAccountId int, toAccountId int, amount int) error
+
+	ListTransactions(ctx context.Context, accountId int) ([]*model.Transaction, error)
 }
 
 type Repository interface {

@@ -29,7 +29,9 @@ func NewRouter(users bank.UserService, accounts bank.AccountService, transaction
 		auth.POST("account/deposit", handlers.Deposit(&transactions))
 		auth.POST("account/withdraw", handlers.Withdraw(&transactions))
 
-		auth.POST("transfer", handlers.Transfer(&transactions))
+		auth.POST("account/transfer", handlers.Transfer(&transactions))
+
+		auth.GET("account/history", handlers.ListTransactions(&transactions))
 	}
 
 	return r

@@ -21,7 +21,7 @@ func NewAccount(bank *bank.AccountService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request (no id in context)"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
 			return
 		}
 		id := int(userId.(float64))
@@ -32,7 +32,7 @@ func NewAccount(bank *bank.AccountService) gin.HandlerFunc {
 			return
 		}
 
-		cur := model.Currency(req.CurrencyName)
+		cur := model.Currency{Symbol: req.CurrencyName}
 		account, err := (*bank).CreateAccount(c, id, cur)
 		if err != nil {
 			code, message := handleError(err)
@@ -42,7 +42,7 @@ func NewAccount(bank *bank.AccountService) gin.HandlerFunc {
 
 		resp := accountInfoResponse{
 			Id:           account.Id,
-			CurrencyName: string(account.Cur),
+			CurrencyName: account.Cur.Symbol,
 			Amount:       account.Amount,
 		}
 
@@ -58,7 +58,7 @@ func GetAccount(bank *bank.AccountService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request (no id in context)"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
 			return
 		}
 		id := int(userId.(float64))
@@ -78,7 +78,7 @@ func GetAccount(bank *bank.AccountService) gin.HandlerFunc {
 
 		resp := accountInfoResponse{
 			Id:           account.Id,
-			CurrencyName: string(account.Cur),
+			CurrencyName: account.Cur.Symbol,
 			Amount:       account.Amount,
 		}
 
@@ -94,7 +94,7 @@ func DeleteAccount(bank *bank.AccountService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request (no id in context)"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
 			return
 		}
 		id := int(userId.(float64))

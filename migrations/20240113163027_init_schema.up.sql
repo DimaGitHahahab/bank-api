@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS "user"
     id         SERIAL PRIMARY KEY,
     name       VARCHAR(50)  NOT NULL,
     email      VARCHAR(255) NOT NULL UNIQUE,
-    password   VARCHAR(72) NOT NULL,
+    password   VARCHAR(72)  NOT NULL,
     created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -27,8 +27,8 @@ CREATE TABLE IF NOT EXISTS account
 CREATE TABLE IF NOT EXISTS transaction
 (
     id              SERIAL PRIMARY KEY,
-    from_account_id INT            NOT NULL,
-    to_account_id   INT            NOT NULL,
+    from_account_id INT,
+    to_account_id   INT,
     currency_id     INT            NOT NULL,
     amount          DECIMAL(10, 2) NOT NULL,
     created_at      TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,

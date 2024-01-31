@@ -30,10 +30,11 @@ func NewAccountService(repo repository.AccountRepository) AccountService {
 }
 
 func (s *accountService) CreateAccount(ctx context.Context, userId int, cur model.Currency) (*model.Account, error) {
-	_, err := s.repo.GetCurrencyId(ctx, cur)
+	id, err := s.repo.GetCurrencyId(ctx, cur)
 	if err != nil {
 		return nil, ErrNoSuchCurrency
 	}
+	cur.Id = id
 	account, err := s.repo.CreateAccount(ctx, userId, cur)
 	if err != nil {
 		return nil, ErrInternal

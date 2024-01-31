@@ -94,18 +94,33 @@ func (mr *MockAccountRepositoryMockRecorder) GetCurrencyId(arg0, arg1 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrencyId", reflect.TypeOf((*MockAccountRepository)(nil).GetCurrencyId), arg0, arg1)
 }
 
-// Transaction mocks base method.
-func (m *MockAccountRepository) Transaction(arg0 context.Context, arg1, arg2 int) error {
+// ListTransactions mocks base method.
+func (m *MockAccountRepository) ListTransactions(arg0 context.Context, arg1 int) ([]*model.Transaction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Transaction", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "ListTransactions", arg0, arg1)
+	ret0, _ := ret[0].([]*model.Transaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListTransactions indicates an expected call of ListTransactions.
+func (mr *MockAccountRepositoryMockRecorder) ListTransactions(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTransactions", reflect.TypeOf((*MockAccountRepository)(nil).ListTransactions), arg0, arg1)
+}
+
+// Transaction mocks base method.
+func (m *MockAccountRepository) Transaction(arg0 context.Context, arg1, arg2 int, arg3 model.TransactionType) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Transaction", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Transaction indicates an expected call of Transaction.
-func (mr *MockAccountRepositoryMockRecorder) Transaction(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockAccountRepositoryMockRecorder) Transaction(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Transaction", reflect.TypeOf((*MockAccountRepository)(nil).Transaction), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Transaction", reflect.TypeOf((*MockAccountRepository)(nil).Transaction), arg0, arg1, arg2, arg3)
 }
 
 // Transfer mocks base method.
