@@ -1,1 +1,1 @@
-##RESTful bank api written in Go
+## RESTful bank api written in Go
