@@ -3,6 +3,7 @@ package bank
 import (
 	"bank-api/internal/model"
 	"bank-api/mocks"
+	"context"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -30,7 +31,7 @@ func TestProcessTransaction_Deposit(t *testing.T) {
 		Type:        model.Deposit,
 	}
 
-	err := s.ProcessTransaction(nil, transaction)
+	err := s.ProcessTransaction(context.Background(), transaction)
 	assert.NoError(t, err)
 }
 
@@ -49,11 +50,11 @@ func TestProcessTransaction_Deposit_InvalidAmount(t *testing.T) {
 		Type:        model.Deposit,
 	}
 
-	err := s.ProcessTransaction(nil, transaction)
+	err := s.ProcessTransaction(context.Background(), transaction)
 	assert.Error(t, err)
 
 	transaction.Amount = 0
-	err = s.ProcessTransaction(nil, transaction)
+	err = s.ProcessTransaction(context.Background(), transaction)
 	assert.Error(t, err)
 }
 
@@ -74,7 +75,7 @@ func TestProcessTransaction_Deposit_InvalidAccount(t *testing.T) {
 		Type:        model.Deposit,
 	}
 
-	err := s.ProcessTransaction(nil, transaction)
+	err := s.ProcessTransaction(context.Background(), transaction)
 	assert.Error(t, err)
 }
 
@@ -99,7 +100,7 @@ func TestProcessTransaction_Withdraw(t *testing.T) {
 		Type:          model.Withdraw,
 	}
 
-	err := s.ProcessTransaction(nil, transaction)
+	err := s.ProcessTransaction(context.Background(), transaction)
 	assert.NoError(t, err)
 }
 
@@ -118,11 +119,11 @@ func TestProcessTransaction_Withdraw_InvalidAmount(t *testing.T) {
 		Type:          model.Withdraw,
 	}
 
-	err := s.ProcessTransaction(nil, transaction)
+	err := s.ProcessTransaction(context.Background(), transaction)
 	assert.Error(t, err)
 
 	transaction.Amount = 0
-	err = s.ProcessTransaction(nil, transaction)
+	err = s.ProcessTransaction(context.Background(), transaction)
 	assert.Error(t, err)
 }
 
@@ -152,7 +153,7 @@ func TestProcessTransfer(t *testing.T) {
 		Type:          model.Transfer,
 	}
 
-	err := s.ProcessTransaction(nil, transaction)
+	err := s.ProcessTransaction(context.Background(), transaction)
 	assert.NoError(t, err)
 }
 
@@ -211,7 +212,7 @@ func TestListTransactions(t *testing.T) {
 
 	s := NewTransactionService(mockRepo)
 
-	transactions, err := s.ListTransactions(nil, 1)
+	transactions, err := s.ListTransactions(context.Background(), 1)
 	assert.NoError(t, err)
 	assert.NotNil(t, transactions)
 	assert.Equal(t, 4, len(transactions))
