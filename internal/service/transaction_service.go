@@ -40,7 +40,7 @@ func (s *transactionService) ProcessTransaction(ctx context.Context, transaction
 func (s *transactionService) processDeposit(ctx context.Context, transaction *domain.Transaction) error {
 	ok, err := s.repo.AccountExists(ctx, transaction.ToAccountId)
 	if err != nil {
-		return fmt.Errorf("can't check if such an account exists")
+		return fmt.Errorf("can't check if such an account exists: %w", err)
 	}
 	if !ok {
 		return domain.ErrNoSuchAccount
@@ -64,7 +64,7 @@ func (s *transactionService) processDeposit(ctx context.Context, transaction *do
 func (s *transactionService) processWithdraw(ctx context.Context, transaction *domain.Transaction) error {
 	ok, err := s.repo.AccountExists(ctx, transaction.FromAccountId)
 	if err != nil {
-		return fmt.Errorf("can't check if such an account exists")
+		return fmt.Errorf("can't check if such an account exists: %w", err)
 	}
 	if !ok {
 		return domain.ErrNoSuchAccount
@@ -92,7 +92,7 @@ func (s *transactionService) processWithdraw(ctx context.Context, transaction *d
 func (s *transactionService) processTransfer(ctx context.Context, transaction *domain.Transaction) error {
 	ok, err := s.repo.AccountExists(ctx, transaction.FromAccountId)
 	if err != nil {
-		return fmt.Errorf("can't check if such an account exists")
+		return fmt.Errorf("can't check if such an account exists: %w", err)
 	}
 	if !ok {
 		return domain.ErrNoSuchAccount
@@ -112,7 +112,7 @@ func (s *transactionService) processTransfer(ctx context.Context, transaction *d
 
 	ok, err = s.repo.AccountExists(ctx, transaction.ToAccountId)
 	if err != nil {
-		return fmt.Errorf("can't check if such an account exists")
+		return fmt.Errorf("can't check if such an account exists: %w", err)
 	}
 	if !ok {
 		return domain.ErrNoSuchAccount
@@ -125,25 +125,16 @@ func (s *transactionService) processTransfer(ctx context.Context, transaction *d
 	return nil
 }
 
-func (s *transactionService) ListTransactions(ctx context.Context, accountId int) ([]*domain.Transaction, error) {
-	ok, err := s.repo.AccountExists(ctx, accountId)
+func (s *transactionService) ListTransactions(ctx context.Context, userId int) ([]*domain.Transaction, error) {
+	ok, err := s.repo.UserExistsById(ctx, userId)
 	if err != nil {
-		return nil, fmt.Errorf("can't check if account exists: %w", err)
+		return nil, fmt.Errorf("can't check if such a user exists: %w", err)
 	}
 	if !ok {
-		return nil, domain.ErrNoSuchAccount
+		return nil, domain.ErrNoSuchUser
 	}
 
-	acc, err := s.repo.GetAccount(ctx, accountId)
-	if err != nil {
-		return nil, fmt.Errorf("can't get account: %w", err)
-	}
-
-	if acc.UserId != accountId {
-		return nil, domain.ErrInvalidAccount
-	}
-
-	trs, err := s.repo.ListTransactions(ctx, accountId)
+	trs, err := s.repo.ListTransactions(ctx, userId)
 	if err != nil {
 		return nil, fmt.Errorf("can't list transactions: %w", err)
 	}

@@ -142,12 +142,7 @@ func TestProcessTransfer(t *testing.T) {
 func TestListTransactions(t *testing.T) {
 	mockRepo := mocks.NewMockAccountRepository(gomock.NewController(t))
 
-	mockRepo.EXPECT().AccountExists(gomock.Any(), 1).Return(true, nil)
-	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&domain.Account{Id: 1, UserId: 1, Cur: domain.Currency{
-		Id:     1,
-		Symbol: "RUB",
-	}, Amount: 100}, nil)
-
+	mockRepo.EXPECT().UserExistsById(gomock.Any(), 1).Return(true, nil)
 	trTimes := []time.Time{
 		time.Now().Add(-time.Hour),
 		time.Now(),

@@ -2,12 +2,11 @@ package handlers
 
 import (
 	"bank-api/internal/domain"
-	"bank-api/internal/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-func GetUser(bank *service.UserService) gin.HandlerFunc {
+func (h *Handler) GetUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		userId, ok := c.Get("user_id")
@@ -16,7 +15,7 @@ func GetUser(bank *service.UserService) gin.HandlerFunc {
 			return
 		}
 		id := int(userId.(float64))
-		user, err := (*bank).GetUserById(c, id)
+		user, err := h.us.GetUserById(c, id)
 		if err != nil {
 			code, message := handleError(err)
 			c.JSON(code, gin.H{"message": message})
@@ -37,7 +36,7 @@ type updateUserRequest struct {
 	Email string `json:"email"`
 }
 
-func UpdateUser(bank *service.UserService) gin.HandlerFunc {
+func (h *Handler) UpdateUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
@@ -51,7 +50,7 @@ func UpdateUser(bank *service.UserService) gin.HandlerFunc {
 			return
 		}
 
-		account, err := (*bank).UpdateUserInfo(c, id, &domain.UserInfo{
+		account, err := h.us.UpdateUserInfo(c, id, &domain.UserInfo{
 			Name:  req.Name,
 			Email: req.Email,
 		})
@@ -70,7 +69,7 @@ func UpdateUser(bank *service.UserService) gin.HandlerFunc {
 	}
 }
 
-func DeleteUser(bank *service.UserService) gin.HandlerFunc {
+func (h *Handler) DeleteUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
@@ -79,12 +78,12 @@ func DeleteUser(bank *service.UserService) gin.HandlerFunc {
 		}
 		id := int(userId.(float64))
 
-		if err := (*bank).DeleteUserById(c, id); err != nil {
+		if err := h.us.DeleteUserById(c, id); err != nil {
 			code, message := handleError(err)
 			c.JSON(code, gin.H{"message": message})
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"message": "ok"})
+		c.Status(http.StatusNoContent)
 	}
 }

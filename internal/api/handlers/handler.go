@@ -2,9 +2,24 @@ package handlers
 
 import (
 	"bank-api/internal/domain"
+	"bank-api/internal/service"
 	"errors"
 	"net/http"
 )
+
+type Handler struct {
+	us service.UserService
+	ac service.AccountService
+	tr service.TransactionService
+}
+
+func NewHandler(us service.UserService, as service.AccountService, tr service.TransactionService) *Handler {
+	return &Handler{
+		us: us,
+		ac: as,
+		tr: tr,
+	}
+}
 
 func handleError(err error) (int, string) {
 	switch {

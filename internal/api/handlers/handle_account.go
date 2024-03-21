@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"bank-api/internal/domain"
-	"bank-api/internal/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 type newAccountRequest struct {
@@ -17,7 +17,7 @@ type accountInfoResponse struct {
 	Amount       int    `json:"amount"`
 }
 
-func NewAccount(bank *service.AccountService) gin.HandlerFunc {
+func (h *Handler) NewAccount() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
@@ -33,7 +33,7 @@ func NewAccount(bank *service.AccountService) gin.HandlerFunc {
 		}
 
 		cur := domain.Currency{Symbol: req.CurrencyName}
-		account, err := (*bank).CreateAccount(c, id, cur)
+		account, err := h.ac.CreateAccount(c, id, cur)
 		if err != nil {
 			code, message := handleError(err)
 			c.JSON(code, gin.H{"message": message})
@@ -50,11 +50,7 @@ func NewAccount(bank *service.AccountService) gin.HandlerFunc {
 	}
 }
 
-type getAccountRequest struct {
-	AccountId int `json:"id" binding:"required"`
-}
-
-func GetAccount(bank *service.AccountService) gin.HandlerFunc {
+func (h *Handler) GetAccount() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
@@ -63,13 +59,13 @@ func GetAccount(bank *service.AccountService) gin.HandlerFunc {
 		}
 		id := int(userId.(float64))
 
-		var req getAccountRequest
-		if err := c.ShouldBindJSON(&req); err != nil {
+		accountId, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
 			return
 		}
 
-		account, err := (*bank).GetAccount(c, id, req.AccountId)
+		account, err := h.ac.GetAccount(c, id, accountId)
 		if err != nil {
 			code, message := handleError(err)
 			c.JSON(code, gin.H{"message": message})
@@ -86,11 +82,7 @@ func GetAccount(bank *service.AccountService) gin.HandlerFunc {
 	}
 }
 
-type deleteAccountRequest struct {
-	AccountId int `json:"id" binding:"required"`
-}
-
-func DeleteAccount(bank *service.AccountService) gin.HandlerFunc {
+func (h *Handler) DeleteAccount() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
@@ -99,18 +91,19 @@ func DeleteAccount(bank *service.AccountService) gin.HandlerFunc {
 		}
 		id := int(userId.(float64))
 
-		var req deleteAccountRequest
-		if err := c.ShouldBindJSON(&req); err != nil {
+		accountId, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
 			return
 		}
-		err := (*bank).DeleteAccount(c, id, req.AccountId)
+
+		err = h.ac.DeleteAccount(c, id, accountId)
 		if err != nil {
 			code, message := handleError(err)
 			c.JSON(code, gin.H{"message": message})
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"message": "ok"})
+		c.Status(http.StatusNoContent)
 	}
 }

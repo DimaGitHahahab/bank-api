@@ -12,26 +12,29 @@ func NewRouter(users service.UserService, accounts service.AccountService, trans
 
 	r.Use(middleware.RateLimiter(2))
 
-	r.POST("/user/signup", handlers.SignUp(&users))
-	r.POST("/user/login", handlers.Login(&users))
+	h := handlers.NewHandler(users, accounts, transactions)
+
+	r.POST("/user/signup", h.SignUp())
+	r.POST("/user/login", h.Login())
 
 	auth := r.Group("/")
 	auth.Use(middleware.RequireAuth)
 	{
-		auth.GET("user", handlers.GetUser(&users))
-		auth.PATCH("user", handlers.UpdateUser(&users))
-		auth.DELETE("user", handlers.DeleteUser(&users))
+		auth.GET("user", h.GetUser())
+		auth.PUT("user", h.UpdateUser())
+		auth.PATCH("user", h.UpdateUser())
+		auth.DELETE("user", h.DeleteUser())
 
-		auth.POST("account", handlers.NewAccount(&accounts))
-		auth.GET("account", handlers.GetAccount(&accounts))
-		auth.DELETE("account", handlers.DeleteAccount(&accounts))
+		auth.POST("account", h.NewAccount())
+		auth.GET("account/:id", h.GetAccount())
+		auth.DELETE("account/:id", h.DeleteAccount())
 
-		auth.POST("account/deposit", handlers.Deposit(&transactions))
-		auth.POST("account/withdraw", handlers.Withdraw(&transactions))
+		auth.POST("account/:id/deposit", h.Deposit())
+		auth.POST("account/:id/withdraw", h.Withdraw())
 
-		auth.POST("account/transfer", handlers.Transfer(&transactions))
+		auth.POST("account/transfer", h.Transfer())
 
-		auth.GET("account/history", handlers.ListTransactions(&transactions))
+		auth.GET("history", h.ListTransactions())
 	}
 
 	return r

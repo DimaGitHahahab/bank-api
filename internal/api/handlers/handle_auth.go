@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"bank-api/internal/domain"
-	"bank-api/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -24,26 +23,27 @@ type userInfoResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func SignUp(bank *service.UserService) gin.HandlerFunc {
+func (h *Handler) SignUp() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req signUpRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request body"})
 			return
 		}
 
 		hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "unable to hash password"})
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error"})
 			return
 		}
-		user, err := (*bank).CreateUser(c, &domain.UserInfo{
+		user, err := h.us.CreateUser(c, &domain.UserInfo{
 			Name:     req.Name,
 			Email:    req.Email,
 			Password: string(hash),
 		})
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			code, msg := handleError(err)
+			c.JSON(code, gin.H{"message": msg})
 			return
 		}
 
@@ -63,7 +63,7 @@ type loginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func Login(bank *service.UserService) gin.HandlerFunc {
+func (h *Handler) Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req loginRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -71,9 +71,10 @@ func Login(bank *service.UserService) gin.HandlerFunc {
 			return
 		}
 
-		user, err := (*bank).GetUserByEmail(c, req.Email)
+		user, err := h.us.GetUserByEmail(c, req.Email)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			code, msg := handleError(err)
+			c.JSON(code, gin.H{"message": msg})
 			return
 		}
 
@@ -88,11 +89,11 @@ func Login(bank *service.UserService) gin.HandlerFunc {
 
 		t, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error signing token"})
+			c.Status(http.StatusInternalServerError)
 			return
 		}
 		c.SetSameSite(http.SameSiteLaxMode)
-		c.SetCookie("Authorization", t, 3600*24, "", "", false, true)
-		c.JSON(http.StatusOK, gin.H{"message": "ok"})
+		c.SetCookie("Authorization", t, 3600*24, "", "", true, true)
+		c.Status(http.StatusOK)
 	}
 }
