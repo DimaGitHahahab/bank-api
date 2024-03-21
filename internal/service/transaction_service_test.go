@@ -1,34 +1,32 @@
-package bank
+package service
 
 import (
-	"bank-api/internal/model"
+	"bank-api/internal/domain"
 	"bank-api/mocks"
 	"context"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 	"testing"
 	"time"
 )
 
 func TestProcessTransaction_Deposit(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	mockRepo := mocks.NewMockAccountRepository(gomock.NewController(t))
 
-	mockRepo := mocks.NewMockAccountRepository(ctrl)
-
-	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 1, Cur: model.Currency{
+	mockRepo.EXPECT().AccountExists(gomock.Any(), 1).Return(true, nil)
+	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&domain.Account{Id: 1, UserId: 1, Cur: domain.Currency{
 		Id:     1,
 		Symbol: "RUB",
-	}, Amount: 0}, nil)
-	mockRepo.EXPECT().Transaction(gomock.Any(), 1, 100, model.Deposit).Return(nil)
+	}, Amount: 100}, nil)
+	mockRepo.EXPECT().Transaction(gomock.Any(), 1, 100, domain.Deposit).Return(nil)
 
 	s := NewTransactionService(mockRepo)
 
-	transaction := &model.Transaction{
+	transaction := &domain.Transaction{
 		ToAccountId: 1,
 		UserId:      1,
 		Amount:      100,
-		Type:        model.Deposit,
+		Type:        domain.Deposit,
 	}
 
 	err := s.ProcessTransaction(context.Background(), transaction)
@@ -36,18 +34,15 @@ func TestProcessTransaction_Deposit(t *testing.T) {
 }
 
 func TestProcessTransaction_Deposit_InvalidAmount(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockAccountRepository(ctrl)
+	mockRepo := mocks.NewMockAccountRepository(gomock.NewController(t))
 
 	s := NewTransactionService(mockRepo)
 
-	transaction := &model.Transaction{
+	transaction := &domain.Transaction{
 		ToAccountId: 1,
 		UserId:      1,
 		Amount:      -100,
-		Type:        model.Deposit,
+		Type:        domain.Deposit,
 	}
 
 	err := s.ProcessTransaction(context.Background(), transaction)
@@ -59,45 +54,40 @@ func TestProcessTransaction_Deposit_InvalidAmount(t *testing.T) {
 }
 
 func TestProcessTransaction_Deposit_InvalidAccount(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	mockRepo := mocks.NewMockAccountRepository(gomock.NewController(t))
 
-	mockRepo := mocks.NewMockAccountRepository(ctrl)
-
-	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(nil, ErrInvalidAccount)
+	mockRepo.EXPECT().AccountExists(gomock.Any(), 1).Return(false, nil)
 
 	s := NewTransactionService(mockRepo)
 
-	transaction := &model.Transaction{
+	transaction := &domain.Transaction{
 		ToAccountId: 1,
 		UserId:      1,
 		Amount:      100,
-		Type:        model.Deposit,
+		Type:        domain.Deposit,
 	}
 
 	err := s.ProcessTransaction(context.Background(), transaction)
-	assert.Error(t, err)
+	assert.ErrorIs(t, domain.ErrNoSuchAccount, err)
 }
 
 func TestProcessTransaction_Withdraw(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	mockRepo := mocks.NewMockAccountRepository(gomock.NewController(t))
 
-	mockRepo := mocks.NewMockAccountRepository(ctrl)
-
-	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 1, Cur: model.Currency{
+	mockRepo.EXPECT().AccountExists(gomock.Any(), 1).Return(true, nil)
+	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&domain.Account{Id: 1, UserId: 1, Cur: domain.Currency{
 		Id:     1,
 		Symbol: "RUB",
-	}, Amount: 400}, nil)
-	mockRepo.EXPECT().Transaction(gomock.Any(), 1, 200, model.Withdraw).Return(nil)
+	}, Amount: 200}, nil)
+	mockRepo.EXPECT().Transaction(gomock.Any(), 1, 200, domain.Withdraw).Return(nil)
 
 	s := NewTransactionService(mockRepo)
 
-	transaction := &model.Transaction{
+	transaction := &domain.Transaction{
 		FromAccountId: 1,
 		UserId:        1,
 		Amount:        200,
-		Type:          model.Withdraw,
+		Type:          domain.Withdraw,
 	}
 
 	err := s.ProcessTransaction(context.Background(), transaction)
@@ -105,52 +95,44 @@ func TestProcessTransaction_Withdraw(t *testing.T) {
 }
 
 func TestProcessTransaction_Withdraw_InvalidAmount(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockAccountRepository(ctrl)
+	mockRepo := mocks.NewMockAccountRepository(gomock.NewController(t))
 
 	s := NewTransactionService(mockRepo)
 
-	transaction := &model.Transaction{
+	transaction := &domain.Transaction{
 		FromAccountId: 1,
 		UserId:        1,
 		Amount:        -100,
-		Type:          model.Withdraw,
+		Type:          domain.Withdraw,
 	}
 
 	err := s.ProcessTransaction(context.Background(), transaction)
-	assert.Error(t, err)
+	assert.ErrorIs(t, domain.ErrInvalidAmount, err)
 
 	transaction.Amount = 0
 	err = s.ProcessTransaction(context.Background(), transaction)
-	assert.Error(t, err)
+	assert.ErrorIs(t, domain.ErrInvalidAmount, err)
 }
 
 func TestProcessTransfer(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	mockRepo := mocks.NewMockAccountRepository(gomock.NewController(t))
 
-	mockRepo := mocks.NewMockAccountRepository(ctrl)
-
-	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 1, Cur: model.Currency{
+	mockRepo.EXPECT().AccountExists(gomock.Any(), 1).Return(true, nil)
+	mockRepo.EXPECT().GetAccount(gomock.Any(), 2).Return(&domain.Account{Id: 1, UserId: 1, Cur: domain.Currency{
 		Id:     1,
 		Symbol: "RUB",
 	}, Amount: 100}, nil)
-	mockRepo.EXPECT().GetAccount(gomock.Any(), 2).Return(&model.Account{Id: 2, UserId: 2, Cur: model.Currency{
-		Id:     1,
-		Symbol: "RUB",
-	}, Amount: 200}, nil)
+	mockRepo.EXPECT().AccountExists(gomock.Any(), 2).Return(true, nil)
 	mockRepo.EXPECT().Transfer(gomock.Any(), 1, 2, 50).Return(nil)
 
 	s := NewTransactionService(mockRepo)
 
-	transaction := &model.Transaction{
+	transaction := &domain.Transaction{
 		FromAccountId: 1,
 		ToAccountId:   2,
 		UserId:        1,
 		Amount:        50,
-		Type:          model.Transfer,
+		Type:          domain.Transfer,
 	}
 
 	err := s.ProcessTransaction(context.Background(), transaction)
@@ -158,12 +140,10 @@ func TestProcessTransfer(t *testing.T) {
 }
 
 func TestListTransactions(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	mockRepo := mocks.NewMockAccountRepository(gomock.NewController(t))
 
-	mockRepo := mocks.NewMockAccountRepository(ctrl)
-
-	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&model.Account{Id: 1, UserId: 1, Cur: model.Currency{
+	mockRepo.EXPECT().AccountExists(gomock.Any(), 1).Return(true, nil)
+	mockRepo.EXPECT().GetAccount(gomock.Any(), 1).Return(&domain.Account{Id: 1, UserId: 1, Cur: domain.Currency{
 		Id:     1,
 		Symbol: "RUB",
 	}, Amount: 100}, nil)
@@ -174,13 +154,13 @@ func TestListTransactions(t *testing.T) {
 		time.Now().Add(time.Hour),
 		time.Now().Add(2 * time.Hour),
 	}
-	trs := []*model.Transaction{
+	trs := []*domain.Transaction{
 		{
 			FromAccountId: 1,
 			ToAccountId:   2,
 			UserId:        1,
 			Amount:        50,
-			Type:          model.Transfer,
+			Type:          domain.Transfer,
 			Time:          trTimes[0],
 		},
 		{
@@ -188,7 +168,7 @@ func TestListTransactions(t *testing.T) {
 			ToAccountId:   1,
 			UserId:        2,
 			Amount:        100,
-			Type:          model.Transfer,
+			Type:          domain.Transfer,
 			Time:          trTimes[1],
 		},
 		{
@@ -196,7 +176,7 @@ func TestListTransactions(t *testing.T) {
 			ToAccountId:   0,
 			UserId:        1,
 			Amount:        100,
-			Type:          model.Withdraw,
+			Type:          domain.Withdraw,
 			Time:          trTimes[2],
 		},
 		{
@@ -204,7 +184,7 @@ func TestListTransactions(t *testing.T) {
 			ToAccountId:   1,
 			UserId:        1,
 			Amount:        100,
-			Type:          model.Deposit,
+			Type:          domain.Deposit,
 			Time:          trTimes[3],
 		},
 	}
@@ -222,7 +202,7 @@ func TestListTransactions(t *testing.T) {
 	}
 }
 
-func assertTransaction(t *testing.T, expected *model.Transaction, got *model.Transaction) {
+func assertTransaction(t *testing.T, expected *domain.Transaction, got *domain.Transaction) {
 	assert.Equal(t, expected.FromAccountId, got.FromAccountId)
 	assert.Equal(t, expected.ToAccountId, got.ToAccountId)
 	assert.Equal(t, expected.UserId, got.UserId)

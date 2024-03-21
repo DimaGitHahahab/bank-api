@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"bank-api/internal/bank"
-	"bank-api/internal/model"
+	"bank-api/internal/domain"
+	"bank-api/internal/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -17,7 +17,7 @@ type accountInfoResponse struct {
 	Amount       int    `json:"amount"`
 }
 
-func NewAccount(bank *bank.AccountService) gin.HandlerFunc {
+func NewAccount(bank *service.AccountService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
@@ -32,7 +32,7 @@ func NewAccount(bank *bank.AccountService) gin.HandlerFunc {
 			return
 		}
 
-		cur := model.Currency{Symbol: req.CurrencyName}
+		cur := domain.Currency{Symbol: req.CurrencyName}
 		account, err := (*bank).CreateAccount(c, id, cur)
 		if err != nil {
 			code, message := handleError(err)
@@ -54,7 +54,7 @@ type getAccountRequest struct {
 	AccountId int `json:"id" binding:"required"`
 }
 
-func GetAccount(bank *bank.AccountService) gin.HandlerFunc {
+func GetAccount(bank *service.AccountService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
@@ -90,7 +90,7 @@ type deleteAccountRequest struct {
 	AccountId int `json:"id" binding:"required"`
 }
 
-func DeleteAccount(bank *bank.AccountService) gin.HandlerFunc {
+func DeleteAccount(bank *service.AccountService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {

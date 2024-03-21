@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"bank-api/internal/bank"
-	"bank-api/internal/model"
+	"bank-api/internal/domain"
+	"bank-api/internal/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-func GetUser(bank *bank.UserService) gin.HandlerFunc {
+func GetUser(bank *service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		userId, ok := c.Get("user_id")
@@ -37,7 +37,7 @@ type updateUserRequest struct {
 	Email string `json:"email"`
 }
 
-func UpdateUser(bank *bank.UserService) gin.HandlerFunc {
+func UpdateUser(bank *service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
@@ -51,7 +51,7 @@ func UpdateUser(bank *bank.UserService) gin.HandlerFunc {
 			return
 		}
 
-		account, err := (*bank).UpdateUserInfo(c, id, &model.UserInfo{
+		account, err := (*bank).UpdateUserInfo(c, id, &domain.UserInfo{
 			Name:  req.Name,
 			Email: req.Email,
 		})
@@ -70,7 +70,7 @@ func UpdateUser(bank *bank.UserService) gin.HandlerFunc {
 	}
 }
 
-func DeleteUser(bank *bank.UserService) gin.HandlerFunc {
+func DeleteUser(bank *service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {

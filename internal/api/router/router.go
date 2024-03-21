@@ -3,11 +3,11 @@ package router
 import (
 	"bank-api/internal/api/handlers"
 	"bank-api/internal/api/middleware"
-	"bank-api/internal/bank"
+	"bank-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
-func NewRouter(users bank.UserService, accounts bank.AccountService, transactions bank.TransactionService) *gin.Engine {
+func NewRouter(users service.UserService, accounts service.AccountService, transactions service.TransactionService) *gin.Engine {
 	r := gin.Default()
 
 	r.Use(middleware.RateLimiter(2))

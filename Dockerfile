@@ -22,4 +22,4 @@ COPY --from=builder /app/migrations ./migrations
 
 COPY --from=builder /app/bankapi .
 
-CMD ["./bankapi"]
+ENTRYPOINT ["./bankapi"]

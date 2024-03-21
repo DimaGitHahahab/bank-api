@@ -2,8 +2,8 @@ package main
 
 import (
 	"bank-api/internal/api/server"
-	"bank-api/internal/bank"
 	"bank-api/internal/repository"
+	"bank-api/internal/service"
 	"context"
 	"errors"
 	"github.com/golang-migrate/migrate/v4"
@@ -56,9 +56,9 @@ func main() {
 
 	repo := repository.New(pool, logger)
 
-	userService := bank.NewUserService(repo)
-	accountService := bank.NewAccountService(repo)
-	transactionService := bank.NewTransactionService(repo)
+	userService := service.NewUserService(repo)
+	accountService := service.NewAccountService(repo)
+	transactionService := service.NewTransactionService(repo)
 
 	port := os.Getenv("HTTP_PORT")
 	srv := server.New(userService, accountService, transactionService)

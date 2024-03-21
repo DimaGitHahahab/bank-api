@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"bank-api/internal/bank"
-	"bank-api/internal/model"
+	"bank-api/internal/domain"
+	"bank-api/internal/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -12,7 +12,7 @@ type depositRequest struct {
 	Amount    int `json:"amount" binding:"required"`
 }
 
-func Deposit(bank *bank.TransactionService) gin.HandlerFunc {
+func Deposit(bank *service.TransactionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
@@ -26,11 +26,11 @@ func Deposit(bank *bank.TransactionService) gin.HandlerFunc {
 			return
 		}
 
-		err := (*bank).ProcessTransaction(c, &model.Transaction{
+		err := (*bank).ProcessTransaction(c, &domain.Transaction{
 			UserId:      id,
 			ToAccountId: req.AccountId,
 			Amount:      req.Amount,
-			Type:        model.Deposit,
+			Type:        domain.Deposit,
 		})
 		if err != nil {
 			code, message := handleError(err)
@@ -47,7 +47,7 @@ type withdrawRequest struct {
 	Amount    int `json:"amount" binding:"required"`
 }
 
-func Withdraw(bank *bank.TransactionService) gin.HandlerFunc {
+func Withdraw(bank *service.TransactionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {
@@ -61,11 +61,11 @@ func Withdraw(bank *bank.TransactionService) gin.HandlerFunc {
 			return
 		}
 
-		err := (*bank).ProcessTransaction(c, &model.Transaction{
+		err := (*bank).ProcessTransaction(c, &domain.Transaction{
 			UserId:        id,
 			FromAccountId: req.AccountId,
 			Amount:        req.Amount,
-			Type:          model.Withdraw,
+			Type:          domain.Withdraw,
 		})
 		if err != nil {
 			code, message := handleError(err)
@@ -83,7 +83,7 @@ type transferRequest struct {
 	Amount        int `json:"amount" binding:"required"`
 }
 
-func Transfer(bank *bank.TransactionService) gin.HandlerFunc {
+func Transfer(bank *service.TransactionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		userId, ok := c.Get("user_id")
@@ -98,12 +98,12 @@ func Transfer(bank *bank.TransactionService) gin.HandlerFunc {
 			return
 		}
 
-		err := (*bank).ProcessTransaction(c, &model.Transaction{
+		err := (*bank).ProcessTransaction(c, &domain.Transaction{
 			UserId:        id,
 			FromAccountId: req.FromAccountId,
 			ToAccountId:   req.ToAccountId,
 			Amount:        req.Amount,
-			Type:          model.Transfer,
+			Type:          domain.Transfer,
 		})
 		if err != nil {
 			code, message := handleError(err)
@@ -127,7 +127,7 @@ type transaction struct {
 	Time           string `json:"processed_at"`
 }
 
-func ListTransactions(bank *bank.TransactionService) gin.HandlerFunc {
+func ListTransactions(bank *service.TransactionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, ok := c.Get("user_id")
 		if !ok {

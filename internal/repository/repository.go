@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"bank-api/internal/model"
+	"bank-api/internal/domain"
 	"bank-api/internal/repository/queries"
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -9,24 +9,29 @@ import (
 )
 
 type UserRepository interface {
-	CreateUser(ctx context.Context, userInfo *model.UserInfo) (*model.User, error)
-	GetUser(ctx context.Context, id int) (*model.User, error)
+	CreateUser(ctx context.Context, userInfo *domain.UserInfo) (*domain.User, error)
+	GetUser(ctx context.Context, id int) (*domain.User, error)
+	UserExistsByEmail(ctx context.Context, email string) (bool, error)
+	UserExistsById(ctx context.Context, id int) (bool, error)
 	GetUserIdByEmail(ctx context.Context, email string) (int, error)
-	UpdateUser(ctx context.Context, id int, userInfo *model.UserInfo) (*model.User, error)
+	UpdateUser(ctx context.Context, id int, userInfo *domain.UserInfo) (*domain.User, error)
 	DeleteUser(ctx context.Context, id int) error
 }
 
 type AccountRepository interface {
-	GetCurrencyId(ctx context.Context, cur model.Currency) (int, error)
-	CreateAccount(ctx context.Context, userId int, cur model.Currency) (*model.Account, error)
-	GetAccount(ctx context.Context, id int) (*model.Account, error)
-	UpdateAccount(ctx context.Context, id int, amount int) (*model.Account, error)
+	UserExistsById(ctx context.Context, id int) (bool, error)
+	GetCurrencyId(ctx context.Context, cur domain.Currency) (int, error)
+	CurrencyExists(ctx context.Context, cur domain.Currency) (bool, error)
+	AccountExists(ctx context.Context, id int) (bool, error)
+	CreateAccount(ctx context.Context, userId int, cur domain.Currency) (*domain.Account, error)
+	GetAccount(ctx context.Context, id int) (*domain.Account, error)
+	UpdateAccount(ctx context.Context, id int, amount int) (*domain.Account, error)
 	DeleteAccount(ctx context.Context, id int) error
 
-	Transaction(ctx context.Context, accountId int, amount int, t model.TransactionType) error
+	Transaction(ctx context.Context, accountId int, amount int, t domain.TransactionType) error
 	Transfer(ctx context.Context, fromAccountId int, toAccountId int, amount int) error
 
-	ListTransactions(ctx context.Context, accountId int) ([]*model.Transaction, error)
+	ListTransactions(ctx context.Context, accountId int) ([]*domain.Transaction, error)
 }
 
 type Repository interface {

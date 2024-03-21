@@ -1,8 +1,16 @@
-package model
+package domain
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 type TransactionType int
+
+var (
+	ErrNotEnoughMoney = errors.New("not enough money")
+	ErrInvalidAmount  = errors.New("invalid amount")
+)
 
 const (
 	Deposit TransactionType = iota

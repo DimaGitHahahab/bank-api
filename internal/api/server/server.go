@@ -2,7 +2,7 @@ package server
 
 import (
 	"bank-api/internal/api/router"
-	"bank-api/internal/bank"
+	"bank-api/internal/service"
 	"context"
 	"net/http"
 )
@@ -11,7 +11,7 @@ type Server struct {
 	http *http.Server
 }
 
-func New(users bank.UserService, accounts bank.AccountService, transactions bank.TransactionService) *Server {
+func New(users service.UserService, accounts service.AccountService, transactions service.TransactionService) *Server {
 	srv := &Server{}
 
 	r := router.NewRouter(users, accounts, transactions)
