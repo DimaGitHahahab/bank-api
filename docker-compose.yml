@@ -4,7 +4,7 @@ services:
   db:
     container_name: db-container
     image: postgres:16-alpine
-    restart: unless-stopped
+    restart: always
     volumes:
       - postgresVolume:/var/lib/postgresql/data
     env_file:
@@ -22,7 +22,7 @@ services:
       - "${HTTP_PORT}:${HTTP_PORT}"
     depends_on:
       - db
-    restart: unless-stopped
+    restart: always
 
 
 volumes:
