@@ -1,9 +1,11 @@
 package repository
 
 import (
+	"context"
+
 	"bank-api/internal/domain"
 	"bank-api/internal/repository/queries"
-	"context"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )

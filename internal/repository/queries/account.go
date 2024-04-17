@@ -1,9 +1,10 @@
 package queries
 
 import (
-	"bank-api/internal/domain"
 	"context"
 	"fmt"
+
+	"bank-api/internal/domain"
 )
 
 const currencyIdBySymbol = `

@@ -1,9 +1,10 @@
 package queries
 
 import (
-	"bank-api/internal/domain"
 	"context"
 	"fmt"
+
+	"bank-api/internal/domain"
 )
 
 const createUser = `
@@ -12,7 +13,6 @@ VALUES ($1, $2, $3) RETURNING id, name, email, password, created_at
 `
 
 func (q *Queries) CreateUser(ctx context.Context, newUserInfo *domain.UserInfo) (*domain.User, error) {
-
 	var user domain.User
 	err := q.pool.QueryRow(ctx, createUser, newUserInfo.Name, newUserInfo.Email, newUserInfo.Password).Scan(&user.Id, &user.Name, &user.Email, &user.HashedPassword, &user.CreatedAt)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"bank-api/internal/api/handlers"
 	"bank-api/internal/api/middleware"
 	"bank-api/internal/service"
+
 	"github.com/gin-gonic/gin"
 )
 

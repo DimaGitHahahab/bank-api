@@ -1,10 +1,11 @@
 package service
 
 import (
-	"bank-api/internal/domain"
-	"bank-api/internal/repository"
 	"context"
 	"fmt"
+
+	"bank-api/internal/domain"
+	"bank-api/internal/repository"
 )
 
 type TransactionService interface {

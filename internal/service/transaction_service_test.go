@@ -1,13 +1,15 @@
 package service
 
 import (
-	"bank-api/internal/domain"
-	"bank-api/mocks"
 	"context"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
 	"testing"
 	"time"
+
+	"bank-api/internal/domain"
+	"bank-api/mocks"
+
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func TestProcessTransaction_Deposit(t *testing.T) {

@@ -1,13 +1,15 @@
 package service
 
 import (
-	"bank-api/internal/domain"
-	"bank-api/mocks"
 	"context"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
 	"testing"
 	"time"
+
+	"bank-api/internal/domain"
+	"bank-api/mocks"
+
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -152,7 +154,6 @@ func TestUserService_UpdateUserInfo(t *testing.T) {
 	user, err := s.UpdateUserInfo(context.Background(), user.Id, userInfo)
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
-
 }
 
 func TestUserService_DeleteUserById(t *testing.T) {
@@ -178,5 +179,4 @@ func TestUserService_DeleteUserById(t *testing.T) {
 
 	err = s.DeleteUserById(context.Background(), user.Id)
 	assert.ErrorIs(t, domain.ErrNoSuchUser, err)
-
 }

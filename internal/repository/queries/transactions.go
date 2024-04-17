@@ -1,10 +1,11 @@
 package queries
 
 import (
-	"bank-api/internal/domain"
 	"context"
 	"database/sql"
 	"fmt"
+
+	"bank-api/internal/domain"
 )
 
 const addTransactionEntry = `

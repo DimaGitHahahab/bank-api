@@ -1,14 +1,15 @@
 package handlers
 
 import (
-	"bank-api/internal/domain"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"bank-api/internal/domain"
+
+	"github.com/gin-gonic/gin"
 )
 
 func (h *Handler) GetUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		userId, ok := c.Get("user_id")
 		if !ok {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})

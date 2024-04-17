@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"bank-api/internal/domain"
-	"bank-api/internal/service"
 	"errors"
 	"net/http"
+
+	"bank-api/internal/domain"
+	"bank-api/internal/service"
 )
 
 type Handler struct {

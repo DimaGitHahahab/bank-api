@@ -1,11 +1,12 @@
 package service
 
 import (
-	"bank-api/internal/domain"
-	"bank-api/internal/repository"
 	"context"
 	"fmt"
 	"net/mail"
+
+	"bank-api/internal/domain"
+	"bank-api/internal/repository"
 )
 
 type UserService interface {
@@ -23,6 +24,7 @@ type userService struct {
 func NewUserService(repo repository.UserRepository) UserService {
 	return &userService{repo: repo}
 }
+
 func (s *userService) CreateUser(ctx context.Context, new *domain.UserInfo) (*domain.User, error) {
 	if _, err := mail.ParseAddress(new.Email); err != nil {
 		return nil, domain.ErrInvalidEmail
@@ -45,7 +47,6 @@ func (s *userService) CreateUser(ctx context.Context, new *domain.UserInfo) (*do
 }
 
 func (s *userService) GetUserById(ctx context.Context, id int) (*domain.User, error) {
-
 	ok, err := s.repo.UserExistsById(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("can't check if user exists: %w", err)

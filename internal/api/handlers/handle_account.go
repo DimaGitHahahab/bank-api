@@ -1,10 +1,12 @@
 package handlers
 
 import (
-	"bank-api/internal/domain"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"bank-api/internal/domain"
+
+	"github.com/gin-gonic/gin"
 )
 
 type newAccountRequest struct {

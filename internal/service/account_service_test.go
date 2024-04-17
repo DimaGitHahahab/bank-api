@@ -1,12 +1,14 @@
 package service
 
 import (
+	"context"
+	"testing"
+
 	"bank-api/internal/domain"
 	"bank-api/mocks"
-	"context"
+
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
-	"testing"
 )
 
 func TestCreateAccount(t *testing.T) {
@@ -29,7 +31,6 @@ func TestCreateAccount(t *testing.T) {
 }
 
 func TestCreateAccount_NoSuchCurrency(t *testing.T) {
-
 	mockRepo := mocks.NewMockAccountRepository(gomock.NewController(t))
 
 	mockRepo.EXPECT().CurrencyExists(gomock.Any(), domain.Currency{Symbol: "currencyName"}).Return(false, nil)
@@ -63,7 +64,6 @@ func TestGetAccount(t *testing.T) {
 		Symbol: "RUB",
 	}, account.Cur)
 	assert.Equal(t, 0, account.Amount)
-
 }
 
 func TestGetAccount_WrongUser(t *testing.T) {

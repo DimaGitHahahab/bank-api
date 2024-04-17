@@ -1,10 +1,11 @@
 package server
 
 import (
-	"bank-api/internal/api/router"
-	"bank-api/internal/service"
 	"context"
 	"net/http"
+
+	"bank-api/internal/api/router"
+	"bank-api/internal/service"
 )
 
 type Server struct {

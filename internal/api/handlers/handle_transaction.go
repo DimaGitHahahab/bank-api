@@ -1,10 +1,12 @@
 package handlers
 
 import (
-	"bank-api/internal/domain"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"bank-api/internal/domain"
+
+	"github.com/gin-gonic/gin"
 )
 
 type depositRequest struct {
@@ -96,7 +98,6 @@ type transferRequest struct {
 
 func (h *Handler) Transfer() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		userId, ok := c.Get("user_id")
 		if !ok {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
