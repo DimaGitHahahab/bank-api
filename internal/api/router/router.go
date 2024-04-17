@@ -6,12 +6,13 @@ import (
 	"bank-api/internal/service"
 
 	"github.com/gin-gonic/gin"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func NewRouter(users service.UserService, accounts service.AccountService, transactions service.TransactionService) *gin.Engine {
 	r := gin.Default()
 
-	r.Use(middleware.RateLimiter(2))
+	r.Use(middleware.RateLimiter(1000))
 
 	h := handlers.NewHandler(users, accounts, transactions)
 
@@ -37,6 +38,11 @@ func NewRouter(users service.UserService, accounts service.AccountService, trans
 
 		auth.GET("history", h.ListTransactions())
 	}
+
+	r.GET("/swagger/*any", gin.WrapH(httpSwagger.Handler(
+		httpSwagger.URL("/swagger.yaml"), // The url pointing to API definition
+	)))
+	r.StaticFile("/swagger.yaml", "./docs/openapi.yaml")
 
 	return r
 }

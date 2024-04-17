@@ -1,0 +1,318 @@
+openapi: 3.0.0
+info:
+  title: Bank API
+  version: 1.0.0
+tags:
+  - name: User
+    description: Operations about user
+  - name: Account
+    description: Operations about account
+  - name: Transaction
+    description: Operations about transaction
+paths:
+  /user/signup:
+    post:
+      tags:
+        - User
+      summary: Sign up a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/signUpRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userInfoResponse'
+        '400':
+          description: Invalid request body
+        '500':
+          description: Internal server error
+  /user/login:
+    post:
+      tags:
+        - User
+      summary: Login a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/loginRequest'
+      responses:
+        '200':
+          description: Login successful
+        '400':
+          description: Invalid request body
+        '401':
+          description: Invalid password
+        '500':
+          description: Internal server error
+  /user:
+    get:
+      tags:
+        - User
+      summary: Get user information
+      responses:
+        '200':
+          description: User information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userInfoResponse'
+        '400':
+          description: Invalid request
+    put:
+      tags:
+        - User
+      summary: Update user information
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateUserRequest'
+      responses:
+        '200':
+          description: User information updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userInfoResponse'
+        '400':
+          description: Invalid request
+    delete:
+      tags:
+        - User
+      summary: Delete a user
+      responses:
+        '204':
+          description: User deleted
+        '400':
+          description: Invalid request
+  /account:
+    post:
+      tags:
+        - Account
+      summary: Create a new account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/newAccountRequest'
+      responses:
+        '200':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/accountInfoResponse'
+        '400':
+          description: Invalid request
+  /account/{id}:
+    get:
+      tags:
+        - Account
+      summary: Get account information
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Account information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/accountInfoResponse'
+        '400':
+          description: Invalid request
+    delete:
+      tags:
+        - Account
+      summary: Delete an account
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Account deleted
+        '400':
+          description: Invalid request
+  /account/{id}/deposit:
+    post:
+      tags:
+        - Transaction
+      summary: Deposit into an account
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/depositRequest'
+      responses:
+        '204':
+          description: Deposit successful
+        '400':
+          description: Invalid request
+  /account/{id}/withdraw:
+    post:
+      tags:
+        - Transaction
+      summary: Withdraw from an account
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/withdrawRequest'
+      responses:
+        '204':
+          description: Withdrawal successful
+        '400':
+          description: Invalid request
+  /account/transfer:
+    post:
+      tags:
+        - Transaction
+      summary: Transfer between accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/transferRequest'
+      responses:
+        '204':
+          description: Transfer successful
+        '400':
+          description: Invalid request
+  /history:
+    get:
+      tags:
+        - Transaction
+      summary: List transactions
+      responses:
+        '200':
+          description: List of transactions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/listTransactionsResponse'
+        '204':
+          description: No transactions
+        '400':
+          description: Invalid request
+components:
+  schemas:
+    signUpRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    loginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    updateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+    newAccountRequest:
+      type: object
+      properties:
+        currency_name:
+          type: string
+    depositRequest:
+      type: object
+      properties:
+        amount:
+          type: integer
+    withdrawRequest:
+      type: object
+      properties:
+        amount:
+          type: integer
+    transferRequest:
+      type: object
+      properties:
+        from_account_id:
+          type: integer
+        to_account_id:
+          type: integer
+        amount:
+          type: integer
+    userInfoResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    accountInfoResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        currency_name:
+          type: string
+        amount:
+          type: integer
+    listTransactionsResponse:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/transaction'
+    transaction:
+      type: object
+      properties:
+        from_account_id:
+          type: integer
+        to_account_id:
+          type: integer
+        currency_name:
+          type: string
+        amount:
+          type: integer
+        processed_at:
+          type: string
+          format: date-time
