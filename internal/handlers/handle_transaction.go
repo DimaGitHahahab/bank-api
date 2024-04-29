@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 
 	"bank-api/internal/domain"
 
@@ -15,33 +14,31 @@ type depositRequest struct {
 
 func (h *Handler) Deposit() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userId, ok := c.Get("user_id")
-		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
+		var id int
+		if ok := getUserId(c, &id); !ok {
+			returnBadRequest(c)
 			return
 		}
-		id := int(userId.(float64))
 
-		accountId, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
+		var accountId int
+		if ok := getAccountId(c, &accountId); !ok {
+			returnBadRequest(c)
 			return
 		}
+
 		var req depositRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
+			returnBadRequest(c)
 			return
 		}
 
-		err = h.tr.ProcessTransaction(c, &domain.Transaction{
+		if err := h.tr.ProcessTransaction(c, &domain.Transaction{
 			UserId:      id,
 			ToAccountId: accountId,
 			Amount:      req.Amount,
 			Type:        domain.Deposit,
-		})
-		if err != nil {
-			code, message := handleError(err)
-			c.JSON(code, gin.H{"message": message})
+		}); err != nil {
+			returnError(c, err)
 			return
 		}
 
@@ -55,34 +52,31 @@ type withdrawRequest struct {
 
 func (h *Handler) Withdraw() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userId, ok := c.Get("user_id")
-		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
+		var id int
+		if ok := getUserId(c, &id); !ok {
+			returnBadRequest(c)
 			return
 		}
-		id := int(userId.(float64))
 
-		accountId, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
+		var accountId int
+		if ok := getAccountId(c, &accountId); !ok {
+			returnBadRequest(c)
 			return
 		}
 
 		var req withdrawRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
+			returnBadRequest(c)
 			return
 		}
 
-		err = h.tr.ProcessTransaction(c, &domain.Transaction{
+		if err := h.tr.ProcessTransaction(c, &domain.Transaction{
 			UserId:        id,
 			FromAccountId: accountId,
 			Amount:        req.Amount,
 			Type:          domain.Withdraw,
-		})
-		if err != nil {
-			code, message := handleError(err)
-			c.JSON(code, gin.H{"message": message})
+		}); err != nil {
+			returnError(c, err)
 			return
 		}
 
@@ -98,28 +92,26 @@ type transferRequest struct {
 
 func (h *Handler) Transfer() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userId, ok := c.Get("user_id")
-		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
-			return
-		}
-		id := int(userId.(float64))
-		var req transferRequest
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
+		var id int
+		if ok := getUserId(c, &id); !ok {
+			returnBadRequest(c)
 			return
 		}
 
-		err := h.tr.ProcessTransaction(c, &domain.Transaction{
+		var req transferRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			returnBadRequest(c)
+			return
+		}
+
+		if err := h.tr.ProcessTransaction(c, &domain.Transaction{
 			UserId:        id,
 			FromAccountId: req.FromAccountId,
 			ToAccountId:   req.ToAccountId,
 			Amount:        req.Amount,
 			Type:          domain.Transfer,
-		})
-		if err != nil {
-			code, message := handleError(err)
-			c.JSON(code, gin.H{"message": message})
+		}); err != nil {
+			returnError(c, err)
 			return
 		}
 
@@ -141,20 +133,17 @@ type transaction struct {
 
 func (h *Handler) ListTransactions() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userId, ok := c.Get("user_id")
-		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
+		var id int
+		if ok := getUserId(c, &id); !ok {
+			returnBadRequest(c)
 			return
 		}
-		id := int(userId.(float64))
 
 		transactions, err := h.tr.ListTransactions(c, id)
 		if err != nil {
-			code, message := handleError(err)
-			c.JSON(code, gin.H{"message": message})
+			returnError(c, err)
 			return
 		}
-
 		if len(transactions) == 0 {
 			c.Status(http.StatusNoContent)
 			return

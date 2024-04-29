@@ -1,26 +1,25 @@
 package router
 
 import (
-	"bank-api/internal/api/handlers"
-	"bank-api/internal/api/middleware"
-	"bank-api/internal/service"
+	"bank-api/internal/handlers"
+	"bank-api/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-func NewRouter(users service.UserService, accounts service.AccountService, transactions service.TransactionService) *gin.Engine {
+func NewRouter(h *handlers.Handler) *gin.Engine {
 	r := gin.Default()
 
 	r.Use(middleware.RateLimiter(1000))
-
-	h := handlers.NewHandler(users, accounts, transactions)
 
 	r.POST("/user/signup", h.SignUp())
 	r.POST("/user/login", h.Login())
 
 	auth := r.Group("/")
-	auth.Use(middleware.RequireAuth)
+
+	jwt := middleware.Jwt{Secret: h.JwtSecret}
+	auth.Use(jwt.RequireAuth)
 	{
 		auth.GET("user", h.GetUser())
 		auth.PUT("user", h.UpdateUser())

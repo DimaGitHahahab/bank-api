@@ -36,20 +36,18 @@ type AccountRepository interface {
 	ListTransactions(ctx context.Context, accountId int) ([]*domain.Transaction, error)
 }
 
-type Repository interface {
-	UserRepository
-	AccountRepository
-}
 type repo struct {
 	*queries.Queries
 	pool   *pgxpool.Pool
 	logger *zap.SugaredLogger
 }
 
-func New(pgxPool *pgxpool.Pool, logger *zap.SugaredLogger) Repository {
-	return repo{
+func New(pgxPool *pgxpool.Pool, logger *zap.SugaredLogger) (UserRepository, AccountRepository) {
+	r := &repo{
 		Queries: queries.New(pgxPool),
 		pool:    pgxPool,
 		logger:  logger,
 	}
+
+	return r, r
 }

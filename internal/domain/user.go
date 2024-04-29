@@ -11,6 +11,7 @@ var (
 	ErrInvalidEmail      = errors.New("invalid email")
 	ErrNoSuchUser        = errors.New("no such user")
 	ErrEmptyPassword     = errors.New("empty password")
+	ErrWrongPassword     = errors.New("password doesn't match")
 )
 
 type UserInfo struct {

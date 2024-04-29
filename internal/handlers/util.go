@@ -3,26 +3,42 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"bank-api/internal/domain"
-	"bank-api/internal/service"
+
+	"github.com/gin-gonic/gin"
 )
 
-type Handler struct {
-	us service.UserService
-	ac service.AccountService
-	tr service.TransactionService
+func returnBadRequest(c *gin.Context) {
+	c.String(http.StatusBadRequest, "invalid request")
 }
 
-func NewHandler(us service.UserService, as service.AccountService, tr service.TransactionService) *Handler {
-	return &Handler{
-		us: us,
-		ac: as,
-		tr: tr,
+func returnError(c *gin.Context, err error) {
+	code, msg := getCodeAndMessage(err)
+	c.String(code, msg)
+}
+
+func getUserId(c *gin.Context, id *int) bool {
+	userIdClaim, ok := c.Get("user_id")
+	if !ok {
+		return false
 	}
+	*id = int(userIdClaim.(float64))
+	return true
 }
 
-func handleError(err error) (int, string) {
+func getAccountId(c *gin.Context, id *int) bool {
+	accountId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return false
+	}
+
+	*id = accountId
+	return true
+}
+
+func getCodeAndMessage(err error) (int, string) {
 	switch {
 	case errors.Is(err, domain.ErrInvalidAccount):
 		return http.StatusBadRequest, "Invalid account"
@@ -46,6 +62,8 @@ func handleError(err error) (int, string) {
 		return http.StatusBadRequest, "Empty password"
 	case errors.Is(err, domain.ErrEmptyUserInfo):
 		return http.StatusBadRequest, "Empty user info"
+	case errors.Is(err, domain.ErrWrongPassword):
+		return http.StatusUnauthorized, "Wrong password"
 	default:
 		return http.StatusInternalServerError, "Internal server error"
 	}

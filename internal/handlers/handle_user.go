@@ -10,20 +10,19 @@ import (
 
 func (h *Handler) GetUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userId, ok := c.Get("user_id")
-		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
-			return
-		}
-		id := int(userId.(float64))
-		user, err := h.us.GetUserById(c, id)
-		if err != nil {
-			code, message := handleError(err)
-			c.JSON(code, gin.H{"message": message})
+		var id int
+		if ok := getUserId(c, &id); !ok {
+			returnBadRequest(c)
 			return
 		}
 
-		c.JSON(http.StatusOK, userInfoResponse{
+		user, err := h.us.GetUserById(c, id)
+		if err != nil {
+			returnError(c, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, userResponse{
 			Id:        user.Id,
 			Name:      user.Name,
 			Email:     user.Email,
@@ -39,15 +38,15 @@ type updateUserRequest struct {
 
 func (h *Handler) UpdateUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userId, ok := c.Get("user_id")
-		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
+		var id int
+		if ok := getUserId(c, &id); !ok {
+			returnBadRequest(c)
 			return
 		}
-		id := int(userId.(float64))
+
 		var req updateUserRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
+			returnBadRequest(c)
 			return
 		}
 
@@ -56,12 +55,11 @@ func (h *Handler) UpdateUser() gin.HandlerFunc {
 			Email: req.Email,
 		})
 		if err != nil {
-			code, message := handleError(err)
-			c.JSON(code, gin.H{"message": message})
+			returnError(c, err)
 			return
 		}
 
-		c.JSON(http.StatusOK, userInfoResponse{
+		c.JSON(http.StatusOK, userResponse{
 			Id:        account.Id,
 			Name:      account.Name,
 			Email:     account.Email,
@@ -72,16 +70,14 @@ func (h *Handler) UpdateUser() gin.HandlerFunc {
 
 func (h *Handler) DeleteUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userId, ok := c.Get("user_id")
-		if !ok {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
+		var id int
+		if ok := getUserId(c, &id); !ok {
+			returnBadRequest(c)
 			return
 		}
-		id := int(userId.(float64))
 
 		if err := h.us.DeleteUserById(c, id); err != nil {
-			code, message := handleError(err)
-			c.JSON(code, gin.H{"message": message})
+			returnError(c, err)
 			return
 		}
 

@@ -2,15 +2,15 @@ package handlers
 
 import (
 	"net/http"
-	"os"
 	"time"
 
 	"bank-api/internal/domain"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
 )
+
+const expireDeadline = time.Hour * 24
 
 type signUpRequest struct {
 	Name     string `json:"name" binding:"required"`
@@ -18,7 +18,7 @@ type signUpRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-type userInfoResponse struct {
+type userResponse struct {
 	Id        int       `json:"id"`
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
@@ -29,34 +29,26 @@ func (h *Handler) SignUp() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req signUpRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request body"})
+			returnBadRequest(c)
 			return
 		}
 
-		hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "internal error"})
-			return
-		}
 		user, err := h.us.CreateUser(c, &domain.UserInfo{
 			Name:     req.Name,
 			Email:    req.Email,
-			Password: string(hash),
+			Password: req.Password,
 		})
 		if err != nil {
-			code, msg := handleError(err)
-			c.JSON(code, gin.H{"message": msg})
+			returnError(c, err)
 			return
 		}
 
-		r := userInfoResponse{
+		c.JSON(http.StatusCreated, userResponse{
 			Id:        user.Id,
 			Name:      user.Name,
 			Email:     user.Email,
 			CreatedAt: user.CreatedAt,
-		}
-
-		c.JSON(http.StatusCreated, r)
+		})
 	}
 }
 
@@ -69,33 +61,40 @@ func (h *Handler) Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req loginRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request body"})
+			returnBadRequest(c)
 			return
 		}
 
-		user, err := h.us.GetUserByEmail(c, req.Email)
-		if err != nil {
-			code, msg := handleError(err)
-			c.JSON(code, gin.H{"message": msg})
-			return
-		}
-
-		if err := bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(req.Password)); err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "invalid password"})
-			return
-		}
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"sub": user.Id,
-			"exp": time.Now().Add(time.Hour * 24).Unix(),
+		u, err := h.us.AuthenticateUser(c, &domain.UserInfo{
+			Email:    req.Email,
+			Password: req.Password,
 		})
-
-		t, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 		if err != nil {
-			c.Status(http.StatusInternalServerError)
+			returnError(c, err)
 			return
 		}
-		c.SetSameSite(http.SameSiteLaxMode)
-		c.SetCookie("Authorization", t, 3600*24, "", "", true, true)
+
+		t, err := h.generateJWT(u)
+		if err != nil {
+			returnError(c, err)
+			return
+		}
+
+		setCookieToken(c, t)
 		c.Status(http.StatusOK)
 	}
+}
+
+func (h *Handler) generateJWT(u *domain.User) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": u.Id,
+		"exp": time.Now().Add(expireDeadline).Unix(),
+	})
+
+	return token.SignedString([]byte(h.JwtSecret))
+}
+
+func setCookieToken(c *gin.Context, token string) {
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("Authorization", token, 3600*24, "", "", true, true)
 }

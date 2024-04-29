@@ -7,6 +7,8 @@ import (
 
 	"bank-api/internal/domain"
 	"bank-api/internal/repository"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService interface {
@@ -15,6 +17,7 @@ type UserService interface {
 	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
 	UpdateUserInfo(ctx context.Context, id int, info *domain.UserInfo) (*domain.User, error)
 	DeleteUserById(ctx context.Context, id int) error
+	AuthenticateUser(ctx context.Context, u *domain.UserInfo) (*domain.User, error)
 }
 
 type userService struct {
@@ -38,12 +41,26 @@ func (s *userService) CreateUser(ctx context.Context, new *domain.UserInfo) (*do
 		return nil, domain.ErrUserAlreadyExists
 	}
 
+	err = hashPassword(new)
+	if err != nil {
+		return nil, err
+	}
+
 	user, err := s.repo.CreateUser(ctx, new)
 	if err != nil {
 		return nil, fmt.Errorf("error creating user: %w", err)
 	}
 
 	return user, nil
+}
+
+func hashPassword(u *domain.UserInfo) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	u.Password = string(hash)
+	return nil
 }
 
 func (s *userService) GetUserById(ctx context.Context, id int) (*domain.User, error) {
@@ -137,4 +154,17 @@ func (s *userService) DeleteUserById(ctx context.Context, id int) error {
 	}
 
 	return nil
+}
+
+func (s *userService) AuthenticateUser(ctx context.Context, login *domain.UserInfo) (*domain.User, error) {
+	user, err := s.GetUserByEmail(ctx, login.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(login.Password)); err != nil {
+		return nil, domain.ErrWrongPassword
+	}
+
+	return user, nil
 }

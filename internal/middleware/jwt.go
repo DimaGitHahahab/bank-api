@@ -2,14 +2,17 @@ package middleware
 
 import (
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func RequireAuth(c *gin.Context) {
+type Jwt struct {
+	Secret string
+}
+
+func (j *Jwt) RequireAuth(c *gin.Context) {
 	tokenStr, err := c.Cookie("Authorization")
 	if err != nil {
 		c.AbortWithStatus(http.StatusUnauthorized)
@@ -18,7 +21,7 @@ func RequireAuth(c *gin.Context) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, jwt.ErrSignatureInvalid
 		}
-		return []byte(os.Getenv("JWT_SECRET")), nil
+		return []byte(j.Secret), nil
 	})
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
