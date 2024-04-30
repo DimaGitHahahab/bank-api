@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"bank-api/internal/domain"
+	"bank-api/internal/service"
+	"bank-api/pkg/validate"
 
 	"github.com/gin-gonic/gin"
 )
@@ -40,30 +41,30 @@ func getAccountId(c *gin.Context, id *int) bool {
 
 func getCodeAndMessage(err error) (int, string) {
 	switch {
-	case errors.Is(err, domain.ErrInvalidAccount):
+	case errors.Is(err, service.ErrInvalidAccount):
 		return http.StatusBadRequest, "Invalid account"
-	case errors.Is(err, domain.ErrNoSuchAccount):
+	case errors.Is(err, service.ErrNoSuchAccount):
 		return http.StatusNotFound, "No such account"
-	case errors.Is(err, domain.ErrNoSuchCurrency):
+	case errors.Is(err, service.ErrNoSuchCurrency):
 		return http.StatusNotFound, "No such currency"
-	case errors.Is(err, domain.ErrNotEnoughMoney):
+	case errors.Is(err, service.ErrNotEnoughMoney):
 		return http.StatusForbidden, "Not enough money"
-	case errors.Is(err, domain.ErrInvalidAmount):
+	case errors.Is(err, service.ErrInvalidAmount):
 		return http.StatusForbidden, "Invalid amount"
-	case errors.Is(err, domain.ErrUserAlreadyExists):
+	case errors.Is(err, service.ErrUserAlreadyExists):
 		return http.StatusConflict, "User already exists"
-	case errors.Is(err, domain.ErrNoSuchUser):
+	case errors.Is(err, service.ErrNoSuchUser):
 		return http.StatusNotFound, "No such user"
-	case errors.Is(err, domain.ErrUserAlreadyExists):
-		return http.StatusConflict, "User already exists"
-	case errors.Is(err, domain.ErrInvalidEmail):
-		return http.StatusBadRequest, "Invalid email"
-	case errors.Is(err, domain.ErrEmptyPassword):
-		return http.StatusBadRequest, "Empty password"
-	case errors.Is(err, domain.ErrEmptyUserInfo):
+	case errors.Is(err, service.ErrEmptyUserInfo):
 		return http.StatusBadRequest, "Empty user info"
-	case errors.Is(err, domain.ErrWrongPassword):
+	case errors.Is(err, service.ErrWrongPassword):
 		return http.StatusUnauthorized, "Wrong password"
+	case errors.Is(err, validate.ErrInvalidName):
+		return http.StatusBadRequest, "Invalid name"
+	case errors.Is(err, validate.ErrInvalidEmail):
+		return http.StatusBadRequest, "Invalid email"
+	case errors.Is(err, validate.ErrInvalidPassword):
+		return http.StatusBadRequest, "Invalid password"
 	default:
 		return http.StatusInternalServerError, "Internal server error"
 	}

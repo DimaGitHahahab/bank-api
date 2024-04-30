@@ -39,7 +39,7 @@ func TestCreateAccount_NoSuchCurrency(t *testing.T) {
 
 	account, err := s.CreateAccount(context.Background(), 1, domain.Currency{Symbol: "currencyName"})
 	assert.Nil(t, account)
-	assert.ErrorIs(t, domain.ErrNoSuchCurrency, err)
+	assert.ErrorIs(t, ErrNoSuchCurrency, err)
 }
 
 func TestGetAccount(t *testing.T) {
@@ -83,7 +83,7 @@ func TestGetAccount_WrongUser(t *testing.T) {
 
 	account, err := s.GetAccount(context.Background(), 1, 1)
 	assert.Nil(t, account)
-	assert.ErrorIs(t, domain.ErrInvalidAccount, err)
+	assert.ErrorIs(t, ErrInvalidAccount, err)
 }
 
 func TestUpdateAccount(t *testing.T) {
@@ -129,7 +129,7 @@ func TestUpdateAccount_WrongUser(t *testing.T) {
 
 	account, err := s.UpdateAccount(context.Background(), 1, 1, 100)
 	assert.Nil(t, account)
-	assert.ErrorIs(t, domain.ErrInvalidAccount, err)
+	assert.ErrorIs(t, ErrInvalidAccount, err)
 }
 
 func TestDeleteAccount(t *testing.T) {
@@ -162,5 +162,5 @@ func TestDeleteAccount_WrongUser(t *testing.T) {
 	s := NewAccountService(mockRepo)
 
 	err := s.DeleteAccount(context.Background(), 1, 1)
-	assert.ErrorIs(t, domain.ErrInvalidAccount, err)
+	assert.ErrorIs(t, ErrInvalidAccount, err)
 }

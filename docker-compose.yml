@@ -1,16 +1,19 @@
-version: "3"
-
 services:
   db:
     container_name: db-container
-    image: postgres:16-alpine
-    restart: always
+    image: 'postgres:latest'
     volumes:
       - postgresVolume:/var/lib/postgresql/data
     env_file:
       - .env
     ports:
       - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
 
 
   api:
@@ -21,7 +24,8 @@ services:
     ports:
       - "${HTTP_PORT}:${HTTP_PORT}"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: always
 
 

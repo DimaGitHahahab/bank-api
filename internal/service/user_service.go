@@ -2,13 +2,21 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"net/mail"
 
 	"bank-api/internal/domain"
 	"bank-api/internal/repository"
+	"bank-api/pkg/validate"
 
 	"golang.org/x/crypto/bcrypt"
+)
+
+var (
+	ErrEmptyUserInfo     = errors.New("empty user info")
+	ErrUserAlreadyExists = errors.New("user already exists")
+	ErrNoSuchUser        = errors.New("no such user")
+	ErrWrongPassword     = errors.New("password doesn't match")
 )
 
 type UserService interface {
@@ -29,8 +37,8 @@ func NewUserService(repo repository.UserRepository) UserService {
 }
 
 func (s *userService) CreateUser(ctx context.Context, new *domain.UserInfo) (*domain.User, error) {
-	if _, err := mail.ParseAddress(new.Email); err != nil {
-		return nil, domain.ErrInvalidEmail
+	if err := validate.Email(new.Email); err != nil {
+		return nil, err
 	}
 
 	ok, err := s.repo.UserExistsByEmail(ctx, new.Email)
@@ -38,7 +46,15 @@ func (s *userService) CreateUser(ctx context.Context, new *domain.UserInfo) (*do
 		return nil, fmt.Errorf("error checking if user exists: %w", err)
 	}
 	if ok {
-		return nil, domain.ErrUserAlreadyExists
+		return nil, ErrUserAlreadyExists
+	}
+
+	if err := validate.Name(new.Name); err != nil {
+		return nil, err
+	}
+
+	if err := validate.Password(new.Password); err != nil {
+		return nil, err
 	}
 
 	err = hashPassword(new)
@@ -70,7 +86,7 @@ func (s *userService) GetUserById(ctx context.Context, id int) (*domain.User, er
 	}
 
 	if !ok {
-		return nil, domain.ErrNoSuchUser
+		return nil, ErrNoSuchUser
 	}
 
 	account, err := s.repo.GetUser(ctx, id)
@@ -82,16 +98,12 @@ func (s *userService) GetUserById(ctx context.Context, id int) (*domain.User, er
 }
 
 func (s *userService) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
-	if _, err := mail.ParseAddress(email); err != nil {
-		return nil, err
-	}
-
 	ok, err := s.repo.UserExistsByEmail(ctx, email)
 	if err != nil {
 		return nil, fmt.Errorf("can't check by email if user exists: %w", err)
 	}
 	if !ok {
-		return nil, domain.ErrNoSuchUser
+		return nil, ErrNoSuchUser
 	}
 
 	id, err := s.repo.GetUserIdByEmail(ctx, email)
@@ -108,8 +120,8 @@ func (s *userService) GetUserByEmail(ctx context.Context, email string) (*domain
 }
 
 func (s *userService) UpdateUserInfo(ctx context.Context, id int, newInfo *domain.UserInfo) (*domain.User, error) {
-	if !(newInfo.Name != "" || newInfo.Email != "") {
-		return nil, domain.ErrEmptyUserInfo
+	if newInfo.Name == "" && newInfo.Email == "" {
+		return nil, ErrEmptyUserInfo
 	}
 
 	ok, err := s.repo.UserExistsById(ctx, id)
@@ -117,16 +129,19 @@ func (s *userService) UpdateUserInfo(ctx context.Context, id int, newInfo *domai
 		return nil, fmt.Errorf("can't check by id if user exists: %w", err)
 	}
 	if !ok {
-		return nil, domain.ErrNoSuchUser
+		return nil, ErrNoSuchUser
 	}
 
 	var info domain.UserInfo
 	if newInfo.Name != "" {
+		if err := validate.Name(newInfo.Name); err != nil {
+			return nil, err
+		}
 		info.Name = newInfo.Name
 	}
 	if newInfo.Email != "" {
-		if _, err = mail.ParseAddress(newInfo.Email); err != nil {
-			return nil, domain.ErrInvalidEmail
+		if err := validate.Email(newInfo.Email); err != nil {
+			return nil, err
 		}
 		info.Email = newInfo.Email
 	}
@@ -145,7 +160,7 @@ func (s *userService) DeleteUserById(ctx context.Context, id int) error {
 		return fmt.Errorf("can't check by id if user exists: %w", err)
 	}
 	if !ok {
-		return domain.ErrNoSuchUser
+		return ErrNoSuchUser
 	}
 
 	err = s.repo.DeleteUser(ctx, id)
@@ -163,7 +178,7 @@ func (s *userService) AuthenticateUser(ctx context.Context, login *domain.UserIn
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(login.Password)); err != nil {
-		return nil, domain.ErrWrongPassword
+		return nil, ErrWrongPassword
 	}
 
 	return user, nil

@@ -2,10 +2,17 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"bank-api/internal/domain"
 	"bank-api/internal/repository"
+)
+
+var (
+	ErrInvalidAccount = errors.New("invalid account")
+	ErrNoSuchAccount  = errors.New("no such account")
+	ErrNoSuchCurrency = errors.New("no such currency")
 )
 
 type AccountService interface {
@@ -29,7 +36,7 @@ func (s *accountService) CreateAccount(ctx context.Context, userId int, cur doma
 		return nil, fmt.Errorf("can't check if such currency exists: %w", err)
 	}
 	if !ok {
-		return nil, domain.ErrNoSuchCurrency
+		return nil, ErrNoSuchCurrency
 	}
 
 	ok, err = s.repo.UserExistsById(ctx, userId)
@@ -37,7 +44,7 @@ func (s *accountService) CreateAccount(ctx context.Context, userId int, cur doma
 		return nil, fmt.Errorf("can't check if such a user exists: %w", err)
 	}
 	if !ok {
-		return nil, domain.ErrNoSuchUser
+		return nil, ErrNoSuchUser
 	}
 
 	id, err := s.repo.GetCurrencyId(ctx, cur)
@@ -60,7 +67,7 @@ func (s *accountService) GetAccount(ctx context.Context, userId int, accountId i
 		return nil, fmt.Errorf("can't check if account exists: %w", err)
 	}
 	if !ok {
-		return nil, domain.ErrNoSuchAccount
+		return nil, ErrNoSuchAccount
 	}
 
 	ok, err = s.repo.UserExistsById(ctx, userId)
@@ -68,7 +75,7 @@ func (s *accountService) GetAccount(ctx context.Context, userId int, accountId i
 		return nil, fmt.Errorf("can't check if such a user exists: %w", err)
 	}
 	if !ok {
-		return nil, domain.ErrNoSuchUser
+		return nil, ErrNoSuchUser
 	}
 
 	account, err := s.repo.GetAccount(ctx, accountId)
@@ -77,7 +84,7 @@ func (s *accountService) GetAccount(ctx context.Context, userId int, accountId i
 	}
 
 	if account.UserId != userId {
-		return nil, domain.ErrInvalidAccount
+		return nil, ErrInvalidAccount
 	}
 
 	return account, nil
@@ -89,7 +96,7 @@ func (s *accountService) UpdateAccount(ctx context.Context, userId int, accountI
 		return nil, fmt.Errorf("can't check if account exists: %w", err)
 	}
 	if !ok {
-		return nil, domain.ErrNoSuchAccount
+		return nil, ErrNoSuchAccount
 	}
 
 	ok, err = s.repo.UserExistsById(ctx, userId)
@@ -97,7 +104,7 @@ func (s *accountService) UpdateAccount(ctx context.Context, userId int, accountI
 		return nil, fmt.Errorf("can't check if such a user exists: %w", err)
 	}
 	if !ok {
-		return nil, domain.ErrNoSuchUser
+		return nil, ErrNoSuchUser
 	}
 
 	account, err := s.repo.GetAccount(ctx, accountId)
@@ -106,7 +113,7 @@ func (s *accountService) UpdateAccount(ctx context.Context, userId int, accountI
 	}
 
 	if account.UserId != userId {
-		return nil, domain.ErrInvalidAccount
+		return nil, ErrInvalidAccount
 	}
 	account, err = s.repo.UpdateAccount(ctx, accountId, amount)
 	if err != nil {
@@ -122,7 +129,7 @@ func (s *accountService) DeleteAccount(ctx context.Context, userId int, accountI
 		return fmt.Errorf("can't check if such a user exists")
 	}
 	if !ok {
-		return domain.ErrNoSuchUser
+		return ErrNoSuchUser
 	}
 
 	ok, err = s.repo.AccountExists(ctx, accountId)
@@ -130,7 +137,7 @@ func (s *accountService) DeleteAccount(ctx context.Context, userId int, accountI
 		return fmt.Errorf("can't check if such an account exists: %w", err)
 	}
 	if !ok {
-		return domain.ErrNoSuchAccount
+		return ErrNoSuchAccount
 	}
 
 	account, err := s.repo.GetAccount(ctx, accountId)
@@ -139,7 +146,7 @@ func (s *accountService) DeleteAccount(ctx context.Context, userId int, accountI
 	}
 
 	if userId != account.UserId {
-		return domain.ErrInvalidAccount
+		return ErrInvalidAccount
 	}
 
 	err = s.repo.DeleteAccount(ctx, accountId)

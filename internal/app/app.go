@@ -87,6 +87,8 @@ func setupRepo(ctx context.Context, log *zap.SugaredLogger, cfg *config.Config) 
 }
 
 func setupPgxPool(ctx context.Context, log *zap.SugaredLogger, cfg *config.Config) (*pgxpool.Pool, error) {
+	log.Infoln("Setting up pgx pool...")
+
 	pgxConfig, err := pgxpool.ParseConfig(cfg.DbUrl)
 	if err != nil {
 		log.Errorln("Failed to parse pgxpool pgxConfig: ", err)
@@ -109,6 +111,8 @@ func setupPgxPool(ctx context.Context, log *zap.SugaredLogger, cfg *config.Confi
 }
 
 func processMigration(migrationURL string, dbSource string, log *zap.SugaredLogger) {
+	log.Infoln("Processing migration...")
+
 	migration, err := migrate.New(migrationURL, dbSource)
 	if err != nil {
 		log.Fatalln("Failed to create migration: ", err)

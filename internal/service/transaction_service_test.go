@@ -70,7 +70,7 @@ func TestProcessTransaction_Deposit_InvalidAccount(t *testing.T) {
 	}
 
 	err := s.ProcessTransaction(context.Background(), transaction)
-	assert.ErrorIs(t, domain.ErrNoSuchAccount, err)
+	assert.ErrorIs(t, ErrNoSuchAccount, err)
 }
 
 func TestProcessTransaction_Withdraw(t *testing.T) {
@@ -109,11 +109,11 @@ func TestProcessTransaction_Withdraw_InvalidAmount(t *testing.T) {
 	}
 
 	err := s.ProcessTransaction(context.Background(), transaction)
-	assert.ErrorIs(t, domain.ErrInvalidAmount, err)
+	assert.ErrorIs(t, ErrInvalidAmount, err)
 
 	transaction.Amount = 0
 	err = s.ProcessTransaction(context.Background(), transaction)
-	assert.ErrorIs(t, domain.ErrInvalidAmount, err)
+	assert.ErrorIs(t, ErrInvalidAmount, err)
 }
 
 func TestProcessTransfer(t *testing.T) {

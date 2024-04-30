@@ -1,17 +1,7 @@
 package domain
 
 import (
-	"errors"
 	"time"
-)
-
-var (
-	ErrEmptyUserInfo     = errors.New("empty user info")
-	ErrUserAlreadyExists = errors.New("user already exists")
-	ErrInvalidEmail      = errors.New("invalid email")
-	ErrNoSuchUser        = errors.New("no such user")
-	ErrEmptyPassword     = errors.New("empty password")
-	ErrWrongPassword     = errors.New("password doesn't match")
 )
 
 type UserInfo struct {

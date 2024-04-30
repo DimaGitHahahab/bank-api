@@ -7,6 +7,7 @@ import (
 
 	"bank-api/internal/domain"
 	"bank-api/mocks"
+	"bank-api/pkg/validate"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -16,8 +17,9 @@ func TestCreateUser(t *testing.T) {
 	repoMock := mocks.NewMockUserRepository(gomock.NewController(t))
 
 	userInfo := &domain.UserInfo{
-		Name:  "Test User",
-		Email: "test@example.com",
+		Name:     "Test User",
+		Email:    "test@example.com",
+		Password: "hash",
 	}
 
 	repoMock.EXPECT().UserExistsByEmail(gomock.Any(), userInfo.Email).Return(false, nil)
@@ -49,7 +51,7 @@ func TestCreateUser_UserAlreadyExists(t *testing.T) {
 
 	user, err := s.CreateUser(context.Background(), userInfo)
 	assert.Nil(t, user)
-	assert.ErrorIs(t, err, domain.ErrUserAlreadyExists)
+	assert.ErrorIs(t, err, ErrUserAlreadyExists)
 }
 
 func TestCreateUser_BadEmail(t *testing.T) {
@@ -64,7 +66,7 @@ func TestCreateUser_BadEmail(t *testing.T) {
 
 	user, err := s.CreateUser(context.Background(), userInfo)
 	assert.Nil(t, user)
-	assert.Equal(t, domain.ErrInvalidEmail, err)
+	assert.Equal(t, validate.ErrInvalidEmail, err)
 }
 
 func TestUserService_GetUserById(t *testing.T) {
@@ -87,6 +89,7 @@ func TestUserService_GetUserById(t *testing.T) {
 	s := NewUserService(mockRepo)
 
 	user, err := s.GetUserById(context.Background(), user.Id)
+	assert.Nil(t, err)
 	assert.NotNil(t, user)
 	assert.Equal(t, 1, user.Id)
 	assert.Equal(t, "Test User", user.Name)
@@ -95,7 +98,7 @@ func TestUserService_GetUserById(t *testing.T) {
 	mockRepo.EXPECT().UserExistsById(gomock.Any(), 2).Return(false, nil)
 
 	user, err = s.GetUserById(context.Background(), 2)
-	assert.ErrorIs(t, domain.ErrNoSuchUser, err)
+	assert.ErrorIs(t, ErrNoSuchUser, err)
 	assert.Nil(t, user)
 }
 
@@ -127,7 +130,7 @@ func TestUserService_GetUserByEmail(t *testing.T) {
 
 	user, err = s.GetUserByEmail(context.Background(), user.Email)
 	assert.Nil(t, user)
-	assert.ErrorIs(t, domain.ErrNoSuchUser, err)
+	assert.ErrorIs(t, ErrNoSuchUser, err)
 }
 
 func TestUserService_UpdateUserInfo(t *testing.T) {
@@ -178,5 +181,5 @@ func TestUserService_DeleteUserById(t *testing.T) {
 	mockRepo.EXPECT().UserExistsById(gomock.Any(), user.Id).Return(false, nil)
 
 	err = s.DeleteUserById(context.Background(), user.Id)
-	assert.ErrorIs(t, domain.ErrNoSuchUser, err)
+	assert.ErrorIs(t, ErrNoSuchUser, err)
 }

@@ -2,10 +2,16 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"bank-api/internal/domain"
 	"bank-api/internal/repository"
+)
+
+var (
+	ErrNotEnoughMoney = errors.New("not enough money")
+	ErrInvalidAmount  = errors.New("invalid amount")
 )
 
 type TransactionService interface {
@@ -23,7 +29,7 @@ func NewTransactionService(repo repository.AccountRepository) TransactionService
 
 func (s *transactionService) ProcessTransaction(ctx context.Context, transaction *domain.Transaction) error {
 	if transaction.Amount <= 0 {
-		return domain.ErrInvalidAmount
+		return ErrInvalidAmount
 	}
 
 	switch transaction.Type {
@@ -44,7 +50,7 @@ func (s *transactionService) processDeposit(ctx context.Context, transaction *do
 		return fmt.Errorf("can't check if such an account exists: %w", err)
 	}
 	if !ok {
-		return domain.ErrNoSuchAccount
+		return ErrNoSuchAccount
 	}
 
 	accTo, err := s.repo.GetAccount(ctx, transaction.ToAccountId)
@@ -52,7 +58,7 @@ func (s *transactionService) processDeposit(ctx context.Context, transaction *do
 		return fmt.Errorf("can't get account: %w", err)
 	}
 	if accTo.UserId != transaction.UserId {
-		return domain.ErrInvalidAccount
+		return ErrInvalidAccount
 	}
 
 	if err := s.repo.Transaction(ctx, transaction.ToAccountId, transaction.Amount, transaction.Type); err != nil {
@@ -68,7 +74,7 @@ func (s *transactionService) processWithdraw(ctx context.Context, transaction *d
 		return fmt.Errorf("can't check if such an account exists: %w", err)
 	}
 	if !ok {
-		return domain.ErrNoSuchAccount
+		return ErrNoSuchAccount
 	}
 
 	accFrom, err := s.repo.GetAccount(ctx, transaction.FromAccountId)
@@ -76,11 +82,11 @@ func (s *transactionService) processWithdraw(ctx context.Context, transaction *d
 		return fmt.Errorf("can't get account: %w", err)
 	}
 	if accFrom.UserId != transaction.UserId {
-		return domain.ErrInvalidAccount
+		return ErrInvalidAccount
 	}
 
 	if accFrom.Amount < transaction.Amount {
-		return domain.ErrNotEnoughMoney
+		return ErrNotEnoughMoney
 	}
 
 	if err := s.repo.Transaction(ctx, transaction.FromAccountId, transaction.Amount, transaction.Type); err != nil {
@@ -96,7 +102,7 @@ func (s *transactionService) processTransfer(ctx context.Context, transaction *d
 		return fmt.Errorf("can't check if such an account exists: %w", err)
 	}
 	if !ok {
-		return domain.ErrNoSuchAccount
+		return ErrNoSuchAccount
 	}
 
 	accFrom, err := s.repo.GetAccount(ctx, transaction.ToAccountId)
@@ -104,11 +110,11 @@ func (s *transactionService) processTransfer(ctx context.Context, transaction *d
 		return fmt.Errorf("can't get account: %w", err)
 	}
 	if accFrom.UserId != transaction.UserId {
-		return domain.ErrInvalidAccount
+		return ErrInvalidAccount
 	}
 
 	if accFrom.Amount < transaction.Amount {
-		return domain.ErrNotEnoughMoney
+		return ErrNotEnoughMoney
 	}
 
 	ok, err = s.repo.AccountExists(ctx, transaction.ToAccountId)
@@ -116,7 +122,7 @@ func (s *transactionService) processTransfer(ctx context.Context, transaction *d
 		return fmt.Errorf("can't check if such an account exists: %w", err)
 	}
 	if !ok {
-		return domain.ErrNoSuchAccount
+		return ErrNoSuchAccount
 	}
 
 	if err := s.repo.Transfer(ctx, transaction.FromAccountId, transaction.ToAccountId, transaction.Amount); err != nil {
@@ -132,7 +138,7 @@ func (s *transactionService) ListTransactions(ctx context.Context, userId int) (
 		return nil, fmt.Errorf("can't check if such a user exists: %w", err)
 	}
 	if !ok {
-		return nil, domain.ErrNoSuchUser
+		return nil, ErrNoSuchUser
 	}
 
 	trs, err := s.repo.ListTransactions(ctx, userId)
