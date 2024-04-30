@@ -3,13 +3,13 @@
 This project is a REST API for a banking system, built with Go and the Gin-Gonic framework. It uses Docker for containerization and PostgreSQL for data persistence. The API supports user authentication and authorization using JWT.
 
 ## Features
-#### User Authentication and Authorization
+### User Authentication and Authorization
 Users can sign up, log in, and perform various operations based on their access rights.
-#### Bank Account Management
+### Bank Account Management
 Users can create, read, update, and delete bank accounts with different currencies.
-#### Transaction History
+### Transaction History
 Users can view their transaction history, including deposits, withdrawals, and transfers.
-#### Transfers
+### Transfers
 Users can transfer funds between different accounts.
 
 ## Running locally
