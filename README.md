@@ -1,29 +1,29 @@
-## Bank API
+## Bank API 💰
 
-This project is a REST API for a banking system, built with Go and the Gin-Gonic framework. It uses Docker for containerization and PostgreSQL for data persistence. The API supports user authentication and authorization using JWT.
+This project is a REST API for a banking system, built with Go and Gin. It uses JWT for
+authentication and PostgreSQL for data persistence.
 
-## Features
-### User Authentication and Authorization
-Users can sign up, log in, and perform various operations based on their access rights.
-### Bank Account Management
-Users can create, read, update, and delete bank accounts with different currencies.
-### Transaction History
-Users can view their transaction history, including deposits, withdrawals, and transfers.
-### Transfers
-Users can transfer funds between different accounts.
+## Features 
 
-## Running locally
-Start the Docker services:
+Users can sign up, login, and perform various operations based on their access rights, including creation of bank
+accounts with different currencies, money deposits/withdraws/transfers. All the transactions can be listed in history.
 
-```docker compose up```
+Some mock users and their bank accounts are added by default [here](https://github.com/DimaGitHahahab/bank-api/tree/main/migrations). 
 
-## Docs
+## Running locally 
 
-Endpoints and their description can be seen in swagger ui:
+1. Edit ```.env``` file for configuration (optional)
+2. Start the Docker services: ```docker compose up```
+
+## Docs 
+
+Endpoints and their description can be seen in Swagger ui:
+
 ```
 http://localhost:8080/swagger-ui/index.html/
 ```
 
-## Contributing
+## Contributing 💍
 
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are greatly appreciated.
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any
+contributions you make are greatly appreciated.
